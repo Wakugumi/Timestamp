@@ -1,0 +1,20 @@
+@import './styles/light.css';
+
+
+:root {
+  --corner-small  : 8px;
+  --corner-medium : 12px;
+  --corner-large  : 16px;
+  --corner-extra-large: 28px;
+  --corner-full   : 1000px;
+
+  --elevate-1: 1px 1px var(--color-shadow);
+  --elevate-2: 2px 2px var(--color-shadow);
+  --elevate-3: 2px 4px var(--color-shadow);
+  --elevate-4: 2px 4px 2px var(--color-shadow);
+
+}
+
+body {
+  background-color: var(--color-surface-container);
+}
