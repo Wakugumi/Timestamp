@@ -1,0 +1,47 @@
+.timer-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 50px auto;
+    text-align: center;
+  }
+  
+  .timer-line {
+    position: relative;
+    height: 5px;
+    background-color: #ddd;
+    border-radius: 2px;
+    margin-bottom: 20px;
+  }
+  
+  .checkpoint {
+    position: absolute;
+    width: 2px;
+    height: 10px;
+    background-color: #000;
+    top: -2px;
+  }
+  
+  .cursor {
+    position: absolute;
+    width: 10px;
+    height: 20px;
+    background-color: #f00;
+    top: -10px;
+    border-radius: 50%;
+    transition: left 1s linear;
+  }
+  
+  .controls button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .controls button:hover {
+    background-color: #0056b3;
+  }
+  

@@ -1,0 +1,8 @@
+.btn {
+    @apply block relative font-semibold p-4 rounded-lg bg-surface text-on-surface shadow
+    outline outline-1 outline-outline-variant
+}
+
+.btn:active {
+    @apply shadow-none bg-primary text-on-primary;
+}
