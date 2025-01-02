@@ -6,6 +6,7 @@ import PhaseOnePage from './pages/PhaseOnePage'
 import ProtectedRoute from './components/navigation/ProtectedRoute'
 import { PhaseProvider } from './contexts/PhaseContext'
 import PhaseThreePage from './pages/PhaseThreePage'
+import SettingPage from './pages/SettingPage'
 
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
       <BrowserRouter>
         <Routes>
         <Route path='/' element={ <WelcomePage/> } />
+        <Route path='/setting' element={ <SettingPage />} />
         <Route path='/phase1' element={ <ProtectedRoute phaseNumber={1}> <PhaseOnePage/> </ProtectedRoute> } />
         <Route path="/phase3" element={ <PhaseThreePage/> } />
         </Routes>
