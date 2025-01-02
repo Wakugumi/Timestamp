@@ -8,104 +8,98 @@ import CameraService from "../services/CameraService";
  * @returns JSX Element
  */
 export default function PhaseOnePage() {
-    const [refresh, setRefresh] = useState<boolean>(true);
     const [errorState, setErrorState] = useState<string>("");
     const [cameraLoading, setCameraLoading] = useState<boolean>(true);
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    const animationFrameRef = useRef<number | null>(null);
 
-
-    const handleSelectDevice = async () => {
-        await CameraService.selectCamera();
-        setRefresh(!refresh)
-    }
 
     useEffect( () => {
         (async() => { 
             
-        CameraService.setup()
+        await CameraService.setup()
             .then(() => {
                 setCameraLoading(false);
                 console.log("Camera setup call succeed")
             })
             .catch((error) => {
-                setErrorState(error as string);
                 throw new Error(error as string);
             })
-
-            
-
         
     })()
     .then( () => {
-        const camera = CameraService.getInstance()
-                camera.capturePreviewAsBlob()
-                .then( (blob) => {
-                    const url = URL.createObjectURL(blob);
+        const renderer = async() => {
+            try {
+                if(canvasRef.current) {
+                    await CameraService.getPreview(canvasRef.current);
+                }
+                animationFrameRef.current = requestAnimationFrame(renderer)
 
-                    const img = new Image();
-                    img.src = url;
-                    img.onload = () => {
-                        const canvas = canvasRef.current as HTMLCanvasElement;
-                        const context = canvas?.getContext('2d');
-                        context?.drawImage(img, 0, 0, canvas?.width, canvas?.height)
-                        URL.revokeObjectURL(url)
-                    }
-                })
-                .catch(error => {
-                
-                    console.error('Failed to capture preview', error);
-                });
+
+            } catch (error) {
+                if( animationFrameRef.current ) {
+                    cancelAnimationFrame(animationFrameRef.current);
+                }
+                throw new Error(error as string);
+            }
+        }
+        renderer();
+
     }).catch(error => {
+        console.error('Failed to capture preview', error);
         setErrorState(error as string);
+        if(animationFrameRef.current) {
+            cancelAnimationFrame(animationFrameRef.current);
+        }
         return
     });
-    }, [refresh])
 
 
-    if(errorState != "") {
+    return () => {
+        CameraService.getInstance().disconnect()
+    }
+    }, [])
+
+    if (cameraLoading || (errorState != "")) {
         return (
             <>
-                <div className="m-8 p-8 rounded-lg bg-error text-on-error">
-                    { errorState }
+                <div className="grid grid-cols-1 grid-rows-3 gap-4">
+                    <div className="flex flex-col gap-4 row-span-2 justify-center items-center">
+                        { cameraLoading && ( <>
+                                <LoadingAnimation className="text-primary"/>
+                                <span className="text-xl text-on-surface">
+                                    Booting up our camera
+                                </span>
+                            </>
+                        )}
+
+                        { errorState && (
+                            <>
+                                <div className="m-8 p-8 rounded-lg bg-error text-on-error">
+                                    { errorState.toString() }
+                                </div>
+                            </>
+                        )}
+
+                    </div>
                 </div>
             </>
         )
     }
 
-
     return (
         <>
-        
-            <div className="grid grid-cols-1 grid-rows-3 gap-4">
-                <div className="flex flex-col gap-4 justify-center items-center">
-                    { cameraLoading && ( <>
-                            <LoadingAnimation className="text-primary"/>
-                            <span className="text-xl text-on-surface">
-                                Booting up our camera
-                            </span>
-                        </>
-                    )}
+            <div className="grid grid-cols-1 grid-rows-1 gap-4">
+                <div className="p-4">
 
-                    {errorState && (
-                        <>
-                            <div className="m-8 p-8 rounded-lg bg-error text-on-error">
-                                { errorState }
-                            </div>
-                        </>
-                    )}
-
-                </div>
-                <div className="row-span-2">
-
-                    <div className="rounded-lg shadow outline outline-outline-variant">
+                    <div className="rounded-lg shadow outline outline-outline-variant w-fit">
                         <video ref={videoRef} style={{ display: "none" }} />
-                        <canvas ref={canvasRef} width="640" height="480" />
+                        <canvas className="mx-auto" ref={canvasRef} width={"1024"} height={"720"} />
                     </div>
-                    <button onClick={handleSelectDevice}>Select Camera</button>
+
                 </div>
             </div>
-
         </>
     )
 }
