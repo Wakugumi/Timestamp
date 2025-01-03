@@ -9,7 +9,7 @@ export default function WelcomePage() {
 
     const handleLaunch = () => {
         localStorage.setItem('hasUserInteracted', 'true');
-        phase.setCurrentPhase(1); navigate("phase1");
+        phase.setCurrentPhase(1); navigate("phase3");
     }
 
     return (
