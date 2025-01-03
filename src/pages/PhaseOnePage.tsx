@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import LoadingAnimation from "../components/LoadingAnimation";
 import CameraService from "../services/CameraService";
+import { useNavigate } from "react-router";
+import { usePhase } from "../contexts/PhaseContext";
+
 
 /**
  * Phase one of the app is initiating peripherals (camera, printers, etc.)
@@ -10,22 +13,30 @@ import CameraService from "../services/CameraService";
 export default function PhaseOnePage() {
     const [errorState, setErrorState] = useState<string>("");
     const [cameraLoading, setCameraLoading] = useState<boolean>(true);
+    const [isCameraLoad, setIsCameraLoad] = useState<boolean | null>(false);
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const animationFrameRef = useRef<number | null>(null);
+    const phaseContext = usePhase();
+    const navigate = useNavigate();
 
 
     useEffect( () => {
         (async() => { 
-            
-        await CameraService.setup()
-            .then(() => {
-                setCameraLoading(false);
-                console.log("Camera setup call succeed")
-            })
-            .catch((error) => {
-                throw new Error(error as string);
-            })
+            if(!isCameraLoad) {
+                CameraService.setup()
+                .then(() => {
+                    setCameraLoading(false);
+                    setIsCameraLoad(true);
+                    console.log("Camera setup call succeed")
+                })
+                .catch((error) => {
+                    setErrorState(error as string)
+                    throw new Error(error as string);
+                })
+            } else {
+                return;
+            }
         
     })()
     .then( () => {
@@ -48,7 +59,7 @@ export default function PhaseOnePage() {
 
     }).catch(error => {
         console.error('Failed to capture preview', error);
-        setErrorState(error as string);
+        setErrorState((error?.userMessage) as string);
         if(animationFrameRef.current) {
             cancelAnimationFrame(animationFrameRef.current);
         }
@@ -59,13 +70,18 @@ export default function PhaseOnePage() {
     return () => {
         CameraService.getInstance().disconnect()
     }
-    }, [])
+    }, []);
+
+    const handleProceed = () => {
+        phaseContext.setCurrentPhase(phaseContext.currentPhase + 1);
+        navigate("/phase2");
+    }
 
     if (cameraLoading || (errorState != "")) {
         return (
             <>
-                <div className="grid grid-cols-1 grid-rows-3 gap-4">
-                    <div className="flex flex-col gap-4 row-span-2 justify-center items-center">
+                <div className="grid grid-cols-1 grid-rows-3 gap-4 min-h-lvh max-h-lvh">
+                    <div className="flex flex-col gap-4 row-span-3 justify-center items-center">
                         { cameraLoading && ( <>
                                 <LoadingAnimation className="text-primary"/>
                                 <span className="text-xl text-on-surface">
@@ -90,14 +106,19 @@ export default function PhaseOnePage() {
 
     return (
         <>
-            <div className="grid grid-cols-1 grid-rows-1 gap-4">
+            <div className="min-h-lvh max-h-lvh bg-surface-container flex flex-col justify-center items-center gap-8">
                 <div className="p-4">
 
-                    <div className="rounded-lg shadow outline outline-outline-variant w-fit">
+                    <div className="rounded-xl shadow-xl outline outline-primary outline-8 w-fit">
                         <video ref={videoRef} style={{ display: "none" }} />
-                        <canvas className="mx-auto" ref={canvasRef} width={"1024"} height={"720"} />
+                        <canvas className="mx-auto" ref={canvasRef} width={"1280"} height={"720"} />
                     </div>
 
+                </div>
+
+                <div className="flex gap-4 items-center text-on-surface text-xl">
+                    <span>Are we good?</span>
+                    <button className="btn" onClick={ handleProceed }>Proceed to preparation</button>
                 </div>
             </div>
         </>

@@ -7,6 +7,7 @@ import ProtectedRoute from './components/navigation/ProtectedRoute'
 import { PhaseProvider } from './contexts/PhaseContext'
 import PhaseThreePage from './pages/PhaseThreePage'
 import SettingPage from './pages/SettingPage'
+import PhaseTwoPage from './pages/PhaseTwoPage'
 
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
         <Route path='/' element={ <WelcomePage/> } />
         <Route path='/setting' element={ <SettingPage />} />
         <Route path='/phase1' element={ <ProtectedRoute phaseNumber={1}> <PhaseOnePage/> </ProtectedRoute> } />
+        <Route path="/phase2" element={ <ProtectedRoute phaseNumber={2}> <PhaseTwoPage/> </ProtectedRoute> } />
         <Route path="/phase3" element={ <PhaseThreePage/> } />
         </Routes>
       </BrowserRouter>

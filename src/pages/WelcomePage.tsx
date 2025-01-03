@@ -1,4 +1,4 @@
-import { Navigate, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import Icon from "../components/Icon";
 import WelcomeBanner from "../components/WelcomeBanner";
 import { usePhase } from "../contexts/PhaseContext";
@@ -24,7 +24,7 @@ export default function WelcomePage() {
             </div>
             <div className='col-start-2 row-start-1
             flex justify-center items-center'>
-                <h1 className="text-8xl text-primary">Welcome Text</h1>
+                <h1 className="text-8xl text-primary">Timestamp</h1>
             </div>
             <div className="col-start-2
             flex justify-center items-center gap-4">

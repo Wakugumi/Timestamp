@@ -5,8 +5,26 @@ interface LogEntry {
     level: 'info' | 'warn' | 'error';
     technicalMessage: string;
     userMessage?: string;
-  }
-const useLogStore = create<LogEntry[]>(() => []);  
+}
+
+type LogStore = {
+    logs: LogEntry[];
+    addLog: (log: LogEntry) => void;
+
+};
+
+
+const useLogStore = create<LogStore>((set) => ({
+    logs : [],
+
+    addLog: (log) => 
+        set((state) => ({
+            logs: [...state.logs, log],
+        })
+    ),
+    
+
+}));  
 
 /**
  * Logger service to handle centralized logging.
@@ -24,10 +42,10 @@ class LoggerService {
    */
     static log(level: 'info' | 'warn' | 'error', technicalMessage: string, userMessage?: string) {
         const timestamp = new Date().toISOString();
-        const logEntry: LogEntry = { timestamp, level, technicalMessage, userMessage };
+        const logEntry: LogEntry = { timestamp: timestamp, level: level, technicalMessage: technicalMessage, userMessage: userMessage };
 
-        LoggerService.logStore.setState((state) => [...state, logEntry]);
-
+        const addLog = useLogStore.getState().addLog;
+        addLog(logEntry);
         console[level](`[${timestamp}] ${technicalMessage}`);
 
         

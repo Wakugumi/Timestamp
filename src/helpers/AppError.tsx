@@ -1,6 +1,7 @@
 
 
 class AppError extends Error {
+  public name: string
     public code: string;
     public userMessage: string;
   
@@ -11,23 +12,23 @@ class AppError extends Error {
    * @param technicalMessage - A detailed message intended for developers.
    * @param userMessage - A user-friendly message for end users.
    */
-    constructor(code: string, technicalMessage: string, userMessage: string) {
+    constructor(name: string, code: string, technicalMessage: string, userMessage: string) {
       super(technicalMessage);
-      this.name = 'AppError';
+      this.name = name;
       this.code = code;
       this.userMessage = userMessage;
     }
   }
   
-class NetworkError extends AppError {
-constructor(technicalMessage: string, userMessage: string = 'Network error. Please contact our support team') {
-    super('NETWORK_ERROR', technicalMessage, userMessage);
+export class NetworkError extends AppError {
+constructor(technicalMessage: string, userMessage: string = "We're very sorry, the network seems to be out of order") {
+    super("NetworkError", 'NETWORK_ERROR', technicalMessage, userMessage);
 }
 }
 
-class DeviceError extends AppError {
-constructor(technicalMessage: string, userMessage: string = 'Device error. Please contact our support team') {
-    super('DEVICE_ERROR', technicalMessage, userMessage);
+export class DeviceError extends AppError {
+constructor(technicalMessage: string, userMessage: string = "We're very sorry, our device seems to be out of order") {
+    super("DeviceError", 'DEVICE_ERROR', technicalMessage, userMessage);
 }
 }
   

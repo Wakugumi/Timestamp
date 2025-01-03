@@ -1,4 +1,6 @@
 import { Camera } from "web-gphoto2";
+import LoggerService from "./LoggerService";
+import { DeviceError, handleError } from "../helpers/AppError";
 
 export default class CameraService {
     private static instance: Camera;
@@ -43,20 +45,23 @@ export default class CameraService {
      * @return {Camera} as instance
      */
     public static async setup() {
+        if(CameraService.instance) {
+            LoggerService.info("Camera instance already active. This call may unintentionally be called.")
+            return;
+        }
         try {
             const camera = new Camera();
-            console.log("starting camera instance setup");
+            LoggerService.info("Camera setup initiating")
             await camera.connect();
-            console.log(await camera.getSupportedOps());
             this.instance = camera;
         } catch (error) {
             if(error == "Error: Unknown model") {
-                throw new Error("Cannot connect to camera, please contact our support")
+                throw new DeviceError('No recognizable camera device', "We're very sorry, our camera seems to be out of order");
             }
-            throw new Error(error as string);
+            throw new DeviceError(`Error connecting to camera: ${error}`, "We're very sorry, our camera seems to be out of order")
         }
         finally {
-            console.log("camera setup process resolved");
+            LoggerService.info("Camera setup resolved");
         }
 
     };
