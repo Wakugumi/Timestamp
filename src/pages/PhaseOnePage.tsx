@@ -3,6 +3,7 @@ import LoadingAnimation from "../components/LoadingAnimation";
 import CameraService from "../services/CameraService";
 import { useNavigate } from "react-router";
 import { usePhase } from "../contexts/PhaseContext";
+import LoggerService from "../services/LoggerService";
 
 
 /**
@@ -28,7 +29,7 @@ export default function PhaseOnePage() {
                 .then(() => {
                     setCameraLoading(false);
                     setIsCameraLoad(true);
-                    console.log("Camera setup call succeed")
+                    LoggerService.info("Camera setup call succeed")
                 })
                 .catch((error) => {
                     setErrorState(error as string)
@@ -52,12 +53,12 @@ export default function PhaseOnePage() {
                 if( animationFrameRef.current ) {
                     cancelAnimationFrame(animationFrameRef.current);
                 }
-                throw new Error(error as string);
+                LoggerService.error(error as string);
             }
         }
         renderer();
-
-    }).catch(error => {
+            
+        }).catch(error => {
         console.error('Failed to capture preview', error);
         setErrorState((error?.userMessage) as string);
         if(animationFrameRef.current) {
@@ -68,12 +69,12 @@ export default function PhaseOnePage() {
 
 
     return () => {
-        CameraService.getInstance().disconnect()
+        if(animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
     }
     }, []);
 
     const handleProceed = () => {
-        phaseContext.setCurrentPhase(phaseContext.currentPhase + 1);
+        phaseContext.setCurrentPhase(2);
         navigate("/phase2");
     }
 
@@ -106,15 +107,12 @@ export default function PhaseOnePage() {
 
     return (
         <>
-            <div className="min-h-lvh max-h-lvh bg-surface-container flex flex-col justify-center items-center gap-8">
-                <div className="p-4">
+            <div className="min-h-dvh max-h-dvh bg-surface-container flex flex-col justify-center items-center gap-8 p-8">
 
-                    <div className="rounded-xl shadow-xl outline outline-primary outline-8 w-fit">
-                        <video ref={videoRef} style={{ display: "none" }} />
-                        <canvas className="mx-auto" ref={canvasRef} width={"1280"} height={"720"} />
-                    </div>
-
+                <div className="rounded-xl shadow-xl outline outline-primary outline-8 w-fit">
+                    <canvas className="mx-auto" ref={canvasRef} width={"1280"} height={"720"} />
                 </div>
+
 
                 <div className="flex gap-4 items-center text-on-surface text-xl">
                     <span>Are we good?</span>

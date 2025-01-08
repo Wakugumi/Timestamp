@@ -13,6 +13,7 @@ export default defineConfig({
     assetsInlineLimit: 0, // Ensure `.wasm` files are not inlined
 
   },
+  mode: "development", 
   resolve: {
 
   },

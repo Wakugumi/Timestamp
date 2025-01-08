@@ -1,7 +1,9 @@
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Camera } from 'web-gphoto2';
 import CameraService from "../services/CameraService";
 import { useNavigate } from "react-router";
+import CaptureService from "../services/CaptureService";
+import { DeviceError } from "../helpers/AppError";
 
 interface Log {
   timestamp: string,
@@ -37,10 +39,55 @@ export default function SettingPage() {
     })
   }
 
-  const handleDevicePicker = async () => {
+  const handleDevicePicker = useCallback( async () => {
     Camera.showPicker().then( () => {
       log("USB Device selected");
     })
+  }, []);
+
+  const handleTestCapture = async () => {
+    const camera = CameraService.getInstance();
+    try {
+      const file = await camera.captureImageAsFile();
+      // freeze for 2 second
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(file);
+      a.download = file.name;
+      a.click();
+      log("Image captured");
+    } catch (error) {
+      setLogState( [ ...logState, { timestamp: new Date().toLocaleDateString(), message: "Failed to capture image" } ] )
+    } finally {
+      setLogState( [ ...logState, { timestamp: new Date().toLocaleDateString(), message: "Image captured" } ] )
+    }
+  }
+
+
+  const handleConnectCamera = async () => {
+    try {
+      await CameraService.getInstance().connect();
+      setLogState( [ ...logState, { timestamp: new Date().toLocaleDateString(), message: "Camera connected" } ] )
+    }
+    catch (error){
+      console.error(error);
+      setLogState( [ ...logState, { timestamp: new Date().toLocaleDateString(), message: error as string } ] )
+    } finally {
+    }
+  }
+
+  const handleDisconnectCamera = async () => {
+    try {
+      await CameraService.getInstance().disconnect();
+      setLogState( [ ...logState, { timestamp: new Date().toLocaleDateString(), message: "Camera disconnected" } ] )
+
+    }
+    catch (error){
+      console.error(error);
+      setLogState( [ ...logState, { timestamp: new Date().toLocaleDateString(), message: error as string } ] )
+    }
+    finally {
+    }
   }
 
   const handleReturn = () => {
@@ -57,7 +104,7 @@ export default function SettingPage() {
           ( logState && 
             <>
                 { logState.map((value, index) => (
-                <span key={index} className="font-mono">[{value.timestamp}] {value.message}</span>
+                <span key={index} className="font-mono">[{value.timestamp.toString()}] {value.message.toString()}</span>
                 ))
             }
             </>
@@ -84,11 +131,29 @@ export default function SettingPage() {
           USB Device Select
           </button>
 
+                <button className="p-8 flex btn items text-xl" onClick={handleCameraSetup}>
+          Setup Camera Service
+        </button>
+
+          <button className="p-8 flex btn items text-xl" onClick={handleConnectCamera}>
+          Connect Camera
+        </button>
+
+        <button className="p-8 flex btn items text-xl" onClick={handleDisconnectCamera}>
+          Disconnect Camera
+        </button>
+
+
+
+        <button className="p-8 flex btn items text-xl" onClick={handleTestCapture}>
+          Test Capture Image
+        </button>
 
           <button className="p-8 flex btn items text-xl"
         onClick={handleReturn}>
           Return
           </button>
+          
       </div>
 
     </div>

@@ -19,16 +19,16 @@ function App() {
 
   return (
     <>
-      <div className="min-h-dvh bg-surface-container">
+      <div className="min-h-dvh max-h-dvh bg-surface-container">
       <PhaseProvider>
 
       <BrowserRouter>
         <Routes>
-        <Route path='/' element={ <WelcomePage/> } />
-        <Route path='/setting' element={ <SettingPage />} />
-        <Route path='/phase1' element={ <ProtectedRoute phaseNumber={1}> <PhaseOnePage/> </ProtectedRoute> } />
-        <Route path="/phase2" element={ <ProtectedRoute phaseNumber={2}> <PhaseTwoPage/> </ProtectedRoute> } />
-        <Route path="/phase3" element={ <PhaseThreePage/> } />
+          <Route path='/' element={ <WelcomePage/> } />
+          <Route path='/setting' element={ <SettingPage />} />
+          <Route path='/phase1' element={ <ProtectedRoute phaseNumber={1}> <PhaseOnePage/> </ProtectedRoute> } />
+          <Route path="/phase2" element={ <ProtectedRoute phaseNumber={2}> <PhaseTwoPage/> </ProtectedRoute> } />
+          <Route path="/phase3" element={ <PhaseThreePage/> } />
         </Routes>
       </BrowserRouter>
       </PhaseProvider>

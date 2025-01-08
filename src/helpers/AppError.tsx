@@ -31,6 +31,12 @@ constructor(technicalMessage: string, userMessage: string = "We're very sorry, o
     super("DeviceError", 'DEVICE_ERROR', technicalMessage, userMessage);
 }
 }
+
+export class FileSystemError extends AppError {
+  constructor(technicalMessage: string, userMessage: string = "We're very sorry, our programseems to be trouble running") {
+    super("FileSystemError", "FILESYSTEM_ERROR", technicalMessage, userMessage);
+  }
+}
   
 
 import LoggerService from "../services/LoggerService";
