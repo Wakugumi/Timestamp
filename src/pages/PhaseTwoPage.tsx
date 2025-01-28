@@ -1,81 +1,137 @@
-import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router';
-import { usePhase } from '../contexts/PhaseContext';
-import CameraService from '../services/CameraService';
-import LoggerService from '../services/LoggerService';
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.scss";
+import "slick-carousel/slick/slick-theme.css";
+import "./PhaseTwoPage.css";
+import { useRef, useState } from "react";
 
+interface Coordinates {
+  x1: number[];
+  x2: number[];
+  x3: number[];
+  x4: number[];
+}
 
-/**
- * Phase two of the app is for user preparation.
- * This page shows live preview of the camera, and a button to start the next phase.
- * @returns JSX element
- */
+interface Frame {
+  title: string;
+  src: string;
+  coordinates?: Coordinates[];
+  price: number;
+}
+
+const formatPrice = (number) => {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(number);
+};
+
+function Next(props: { style?: React.CSSProperties; onClick?: () => void }) {
+  const { style, onClick } = props;
+  return (
+    <div
+      className={`absolute block z-[2] top-[40%] right-[2rem] p-4 rounded-full cursor-pointer block shadow text-xl bg-surface-container-low text-on-surface`}
+      style={{ ...style }}
+      onClick={onClick}
+    >
+      &gt;
+    </div>
+  );
+}
+
+function Prev(props: { style?: React.CSSProperties; onClick?: () => void }) {
+  const { style, onClick } = props;
+  return (
+    <div
+      className={`absolute block z-[2] top-[40%] left-[2rem] p-4 rounded-full cursor-pointer block shadow text-xl bg-surface-container-low text-on-surface`}
+      style={{ ...style }}
+      onClick={onClick}
+    >
+      &lt;
+    </div>
+  );
+}
+
 export default function PhaseTwoPage() {
-    const [message, setMessage] = useState<string | null>("Are you ready?");
-    const [errorState, setErrorState] = useState<string | null>(null);
-    const canvasRef = useRef<HTMLCanvasElement | null>(null);
-    const animationFrameRef = useRef<number | null>(null);
-    const containerRef = useRef<HTMLDivElement | null>(null);
+  const slider = useRef(null);
+  const [activeSlide, setActiveSlide] = useState(0);
 
-    const phaseContext = usePhase();
-    const navigate = useNavigate();
+  const settings = {
+    className: "center",
+    centerMode: true,
+    focusOnSelect: true,
+    infinite: true,
+    slidesToShow: 3,
+    slidesToScroll: 1,
+    dots: true,
 
-    const renderer = async() => {
-        if (!canvasRef.current) return;
-        CameraService.getPreview(canvasRef.current as HTMLCanvasElement)
-        .then(() => {
-            animationFrameRef.current = requestAnimationFrame(renderer);    
-        })
-        .catch((error) => {
-            if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-            LoggerService.error(error as string);
-            setErrorState(error as string);
-        })
-    }
+    nextArrow: <Next />,
+    prevArrow: <Prev />,
 
-    useEffect(() => {
-        renderer();
-    }, [])
+    speed: 200,
+    afterChange: (current: number) => {
+      setActiveSlide(current);
+    },
+  };
 
-    const handleStart = () => {
-        if(containerRef.current) {
-            containerRef.current.className = "min-h-lvh max-h-lvh bg-inverse-surface transition-all flex flex-col justify-center items-center gap-8 p-24"
-        }
+  const frames: Frame[] = [
+    {
+      title: "Gibberish Infant Drawing",
+      src: "/public/assets/frames/frame1.png",
+      price: 2000,
+    },
+    {
+      title: "Frame 2",
+      src: "https://picsum.photos/id/100/200/300",
+      price: 3000,
+    },
+    {
+      title: "Adsokrg",
+      src: "https://picsum.photos/id/200/200/300",
+      price: 4000,
+    },
+    {
+      title: "What the fuck frame",
+      src: "https://picsum.photos/id/14/200/300",
+      price: 5000,
+    },
+  ];
 
-        setTimeout(() => {
-            setMessage("3");
-        }, 1000);
-        setTimeout(() => {
-            setMessage("2");
-        }, 2000);
-        setTimeout(() => {
-            setMessage("1");
-        }, 3000);
-        setTimeout(() => {
-            setMessage("Starting...");
-        }, 4000);
-        setTimeout(() => {
-            phaseContext.setCurrentPhase(3);
-            navigate('/phase3');
-        }, 4000);
+  return (
+    <div className="min-h-lvh max-h-lvh flex flex-col justify-evenly gap-2 text-on-surface">
+      <div className="mx-auto">
+        <h1 className="text-xl flex items-center gap-4">
+          You Select:
+          <span className="rounded bg-primary-container px-4 py-2 shadow text-on-primary-container">
+            {frames[activeSlide].title}
+          </span>
+        </h1>
+      </div>
 
-    }
-
-    return (
-        <>
-
-            <div className="min-h-lvh max-h-lvh bg-surface-container transition-all
-            flex flex-col justify-center items-center gap-8 p-24" ref={containerRef}>
-
-                {errorState}
-
-                <canvas ref={canvasRef} className="w-full rounded-lg outline outline-8 outline-primary">
-
-                </canvas>
-                <span className="text-8xl font-light text-surface absolute bottom-16 left-32">{message}</span>
-                <button className="btn absolute bottom-16 right-32 px-24 text-4xl font-light" onClick={handleStart}>Start</button>
+      <div className="slider-container bg-surface mx-32 px-4 py-12 rounded-lg">
+        <Slider {...settings} ref={slider}>
+          {frames.map((item, index) => (
+            <div
+              key={index}
+              className="flex flex-col justify-center gap-2 items-center align-center content-center text-center"
+            >
+              <img
+                className="rounded mx-auto w-auto h-[20rem] object-fit shadow-lg"
+                src={item.src}
+              ></img>
             </div>
+          ))}
+        </Slider>
+      </div>
 
-        </>
-    )
+      <div className="flex flex-row justify-evenly">
+        <h1 className="text-8xl text-primary font-bold">
+          {formatPrice(frames[activeSlide].price)}
+        </h1>
+
+        <button className="btn px-12 text-xl">Select</button>
+      </div>
+    </div>
+  );
 }

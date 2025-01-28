@@ -4,7 +4,14 @@ import CameraService from "../services/CameraService";
 import { useNavigate } from "react-router";
 import { usePhase } from "../contexts/PhaseContext";
 import LoggerService from "../services/LoggerService";
+import BackendService from "../services/BackendService";
+import { AppError } from "../helpers/AppError";
 
+enum PageState {
+  RUNNING,
+  LOADING,
+  ERROR,
+}
 
 /**
  * Phase one of the app is initiating peripherals (camera, printers, etc.)
@@ -12,113 +19,92 @@ import LoggerService from "../services/LoggerService";
  * @returns JSX Element
  */
 export default function PhaseOnePage() {
-    const [errorState, setErrorState] = useState<string>("");
-    const [cameraLoading, setCameraLoading] = useState<boolean>(true);
-    const [isCameraLoad, setIsCameraLoad] = useState<boolean | null>(false);
-    const videoRef = useRef<HTMLVideoElement | null>(null);
-    const canvasRef = useRef<HTMLCanvasElement | null>(null);
-    const animationFrameRef = useRef<number | null>(null);
-    const phaseContext = usePhase();
-    const navigate = useNavigate();
+  const [errorState, setErrorState] = useState<string>("");
+  const [state, setState] = useState<PageState>(PageState.LOADING);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const phaseContext = usePhase();
+  const navigate = useNavigate();
 
+  useEffect(() => {
+    setState(PageState.LOADING);
 
-    useEffect( () => {
-        (async() => { 
-            if(!isCameraLoad) {
-                CameraService.setup()
-                .then(() => {
-                    setCameraLoading(false);
-                    setIsCameraLoad(true);
-                    LoggerService.info("Camera setup call succeed")
-                })
-                .catch((error) => {
-                    setErrorState(error as string)
-                    throw new Error(error as string);
-                })
-            } else {
-                return;
-            }
-        
-    })()
-    .then( () => {
-        const renderer = async() => {
-            try {
-                if(canvasRef.current) {
-                    await CameraService.getPreview(canvasRef.current);
-                }
-                animationFrameRef.current = requestAnimationFrame(renderer)
+    (async () => {
+      await BackendService.setup();
+      console.log("await for setup");
+      await BackendService.checkup();
+      console.log("await for checkup");
+      await BackendService.startStream();
+      setState(PageState.RUNNING);
+    })().then(async () => {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        console.log(devices);
+        const video = devices.find((dev) =>
+          dev.label.includes("Dummy video device"),
+        );
 
-
-            } catch (error) {
-                if( animationFrameRef.current ) {
-                    cancelAnimationFrame(animationFrameRef.current);
-                }
-                LoggerService.error(error as string);
-            }
+        if (video) {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { deviceId: video.deviceId },
+          });
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+          }
         }
-        renderer();
-            
-        }).catch(error => {
-        console.error('Failed to capture preview', error);
-        setErrorState((error?.userMessage) as string);
-        if(animationFrameRef.current) {
-            cancelAnimationFrame(animationFrameRef.current);
-        }
-        return
+      } catch (error) {
+        setState(PageState.ERROR);
+        setErrorState(error as string);
+      }
     });
+  }, []);
 
+  const handleProceed = () => {
+    phaseContext.setCurrentPhase(2);
+    navigate("/phase2");
+  };
 
-    return () => {
-        if(animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-    }
-    }, []);
-
-    const handleProceed = () => {
-        phaseContext.setCurrentPhase(2);
-        navigate("/phase2");
-    }
-
-    if (cameraLoading || (errorState != "")) {
-        return (
-            <>
-                <div className="grid grid-cols-1 grid-rows-3 gap-4 min-h-lvh max-h-lvh">
-                    <div className="flex flex-col gap-4 row-span-3 justify-center items-center">
-                        { cameraLoading && ( <>
-                                <LoadingAnimation className="text-primary"/>
-                                <span className="text-xl text-on-surface">
-                                    Booting up our camera
-                                </span>
-                            </>
-                        )}
-
-                        { errorState && (
-                            <>
-                                <div className="m-8 p-8 rounded-lg bg-error text-on-error">
-                                    { errorState.toString() }
-                                </div>
-                            </>
-                        )}
-
-                    </div>
-                </div>
-            </>
-        )
-    }
-
+  if (state !== PageState.RUNNING) {
     return (
-        <>
-            <div className="min-h-dvh max-h-dvh bg-surface-container flex flex-col justify-center items-center gap-8 p-8">
+      <>
+        <div className="grid grid-cols-1 grid-rows-3 gap-4 min-h-lvh max-h-lvh">
+          <div className="flex flex-col gap-4 row-span-3 justify-center items-center">
+            {state === PageState.LOADING && (
+              <>
+                <LoadingAnimation className="text-primary" />
+                <span className="text-xl text-on-surface">
+                  Booting up our camera
+                </span>
+              </>
+            )}
 
-                <div className="rounded-xl shadow-xl outline outline-primary outline-8 w-fit">
-                    <canvas className="mx-auto" ref={canvasRef} width={"1280"} height={"720"} />
+            {state === PageState.ERROR && (
+              <>
+                <div className="m-8 p-8 rounded-lg bg-error text-on-error">
+                  {errorState.toString()}
                 </div>
+              </>
+            )}
+          </div>
+        </div>
+      </>
+    );
+  }
 
+  return (
+    <>
+      <div className="min-h-dvh max-h-dvh bg-surface-container flex flex-col justify-center items-center gap-8 p-8">
+        <div className="rounded-xl shadow-xl outline outline-primary outline-8 w-fit">
+          <video ref={videoRef} width={"1280"} height={"720"} />
+        </div>
 
-                <div className="flex gap-4 items-center text-on-surface text-xl">
-                    <span>Are we good?</span>
-                    <button className="btn" onClick={ handleProceed }>Proceed to preparation</button>
-                </div>
-            </div>
-        </>
-    )
+        <div className="flex gap-4 items-center text-on-surface text-xl">
+          <span>Are we good?</span>
+          <button className="btn" onClick={handleProceed}>
+            Proceed to preparation
+          </button>
+        </div>
+      </div>
+    </>
+  );
 }

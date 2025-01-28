@@ -1,0 +1,3 @@
+.slick-center > div > div > img {
+  @apply shadow-xl h-[24rem];
+}
