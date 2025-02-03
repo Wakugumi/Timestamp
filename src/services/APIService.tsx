@@ -1,4 +1,9 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import axios, {
+  AxiosInstance,
+  AxiosRequestConfig,
+  AxiosResponse,
+  InternalAxiosRequestConfig,
+} from "axios";
 
 class APIService {
   private static instance: APIService;
@@ -6,10 +11,11 @@ class APIService {
 
   private constructor() {
     this.axiosInstance = axios.create({
-      baseURL: 'https://api.example.com', 
-      timeout: 10000, 
+      baseURL: "https://timestamp.fun/api",
+      timeout: 10000,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
       },
     });
 
@@ -26,33 +32,36 @@ class APIService {
   private initializeInterceptors(): void {
     this.axiosInstance.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
-        const token = localStorage.getItem('accessToken');
+        const token = localStorage.getItem("accessToken");
         if (token) {
-          config.headers['Authorization'] = `Bearer ${token}`;
+          config.headers["Authorization"] = `Bearer ${token}`;
         }
 
         console.info(`[Request] ${config.method?.toUpperCase()} ${config.url}`);
         return config;
       },
       (error) => {
-        console.error('[Request Error]', error);
+        console.error("[Request Error]", error);
         return Promise.reject(error);
-      }
+      },
     );
 
     this.axiosInstance.interceptors.response.use(
       (response: AxiosResponse) => {
         console.info(`[Response] ${response.status} ${response.config.url}`);
+        if (response.data) {
+          response.data = response.data.data;
+        }
         return response;
       },
       (error) => {
-        console.error('[Response Error]', error);
+        console.error("[Response Error]", error);
         if (error.response?.status === 401) {
-          console.warn('Unauthorized, redirecting to login...');
-          window.location.href = '/login';
+          console.warn("Unauthorized, redirecting to login...");
+          window.location.href = "/login";
         }
         return Promise.reject(error);
-      }
+      },
     );
   }
 
@@ -61,12 +70,20 @@ class APIService {
     return response.data;
   }
 
-  async post<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
+  async post<T>(
+    url: string,
+    data?: unknown,
+    config?: AxiosRequestConfig,
+  ): Promise<T> {
     const response = await this.axiosInstance.post<T>(url, data, config);
     return response.data;
   }
 
-  async put<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
+  async put<T>(
+    url: string,
+    data?: unknown,
+    config?: AxiosRequestConfig,
+  ): Promise<T> {
     const response = await this.axiosInstance.put<T>(url, data, config);
     return response.data;
   }

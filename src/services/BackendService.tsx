@@ -1,6 +1,7 @@
 import axios from "axios";
 import LoggerService from "./LoggerService";
 import { DeviceError } from "../helpers/AppError";
+import IPCResponse from "../interfaces/IPCResponse";
 
 const BASE_URL = "http://localhost:3000/v1";
 interface Payload {
@@ -17,18 +18,20 @@ class BackendService {
    * @returns {Promise<void | string>}
    */
   public static async setup() {
-    await api
-      .get<Payload>("status")
-      .then((res) => {
-        if (res.data.message == "ready") {
-          console.log("STATUS CHECKED");
-          return;
-        }
-      })
-      .catch((reason) => {
-        LoggerService.error(reason);
-        throw new DeviceError(reason);
-      });
+    try {
+      const response: IPCResponse<object> = await window.electron.invoke(
+        "camera/status",
+        {},
+      );
+      console.log(response);
+      if (response.OK) return;
+      if (response.FAILED) throw new DeviceError(response.message);
+    } catch (error) {
+      LoggerService.error(
+        error?.technicalMessage ? error?.technicalMessage : (error as string),
+      );
+      throw new DeviceError("Unknown error @ BackendService | " + error);
+    }
   }
 
   public static async checkup() {

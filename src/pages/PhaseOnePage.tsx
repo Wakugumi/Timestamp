@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import LoadingAnimation from "../components/LoadingAnimation";
-import CameraService from "../services/CameraService";
 import { useNavigate } from "react-router";
 import { usePhase } from "../contexts/PhaseContext";
-import LoggerService from "../services/LoggerService";
 import BackendService from "../services/BackendService";
 import { AppError } from "../helpers/AppError";
+import useIdleTimer from "../hooks/useIdleTimer";
 
 enum PageState {
   RUNNING,
@@ -19,47 +18,104 @@ enum PageState {
  * @returns JSX Element
  */
 export default function PhaseOnePage() {
-  const [errorState, setErrorState] = useState<string>("");
+  const [errorState, setErrorState] = useState<AppError | null>(null);
+  const [socket, setSocket] = useState<WebSocket | null>(null);
   const [state, setState] = useState<PageState>(PageState.LOADING);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const phaseContext = usePhase();
   const navigate = useNavigate();
+  const [idle, setIdle] = useState<boolean>(false);
+  const idleMessage = useIdleTimer(10 * 1000, idle);
+
+  const cameraSetup = async () => {
+    console.log("await for setup");
+    await BackendService.setup();
+    // await BackendService.checkup();
+    // console.log("await for checkup");
+  };
+
+  const cleanSocket = () => {
+    if (socket) {
+      socket.close();
+      setSocket(null);
+    }
+  };
+
+  // Handles when the page state is changed
+  useEffect(() => {
+    if (state === PageState.ERROR) {
+      setIdle(true);
+    }
+  }, [state]);
 
   useEffect(() => {
-    setState(PageState.LOADING);
+    const initSocket = () => {
+      const newSocket = new WebSocket("ws://localhost:8080");
+      setSocket(newSocket);
 
-    (async () => {
-      await BackendService.setup();
-      console.log("await for setup");
-      await BackendService.checkup();
-      console.log("await for checkup");
-      await BackendService.startStream();
-      setState(PageState.RUNNING);
-    })().then(async () => {
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        console.log(devices);
-        const video = devices.find((dev) =>
-          dev.label.includes("Dummy video device"),
-        );
+      newSocket.binaryType = "blob";
 
-        if (video) {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            video: { deviceId: video.deviceId },
-          });
-          if (videoRef.current) {
-            videoRef.current.srcObject = stream;
-          }
-        }
-      } catch (error) {
+      newSocket.onmessage = (event) => {
+        if (!canvasRef.current) return;
+        const canvas = canvasRef.current.getContext("2d", {
+          willReadFrequently: true,
+        });
+        const blob = new Blob([event.data], { type: "image/jpeg" });
+        const img = new Image();
+        img.src = URL.createObjectURL(blob);
+
+        img.onload = function render() {
+          canvas?.clearRect(
+            0,
+            0,
+            canvasRef.current?.width as number,
+            canvasRef.current?.height as number,
+          );
+          canvas?.drawImage(
+            img,
+            0,
+            0,
+            canvasRef.current?.width as number,
+            canvasRef.current?.height as number,
+          );
+          URL.revokeObjectURL(img.src);
+        };
+        img.onerror = function (err) {
+          console.error("Failed to load stream:", err);
+        };
+      };
+
+      newSocket.onclose = () => console.log("socket disconnected");
+    };
+
+    if (state === PageState.RUNNING) {
+      initSocket();
+      return () => {
+        console.log("Returning?");
+        if (socket) socket.close();
+        setSocket(null);
+      };
+    }
+  }, [state]);
+
+  useEffect(() => {
+    cameraSetup()
+      .then(() => {
+        setState(PageState.RUNNING);
+        console.log("Page state is now running");
+      })
+      .catch((error) => {
         setState(PageState.ERROR);
-        setErrorState(error as string);
-      }
-    });
+        setErrorState(error);
+      });
+
+    return () => {
+      cleanSocket();
+    };
   }, []);
 
   const handleProceed = () => {
+    cleanSocket();
     phaseContext.setCurrentPhase(2);
     navigate("/phase2");
   };
@@ -80,9 +136,23 @@ export default function PhaseOnePage() {
 
             {state === PageState.ERROR && (
               <>
-                <div className="m-8 p-8 rounded-lg bg-error text-on-error">
-                  {errorState.toString()}
+                {idleMessage && (
+                  <div className="absolute top-[2rem] left-[2rem] bg-tertiary text-on-tertiary p-4 rounded shadow">
+                    {idleMessage}
+                  </div>
+                )}
+                <div
+                  className="m-8 p-8 rounded-lg bg-error w-[40vw] h-[60vh] flex
+                  items-end justify-end text-wrap text-on-error text-[4rem] font-bold"
+                >
+                  {errorState?.toString()}
                 </div>
+                <span
+                  className="px-8 w-[40vw] flex
+                  items-start justify-start text-wrap text-error font-bold"
+                >
+                  Code: {errorState?.code}
+                </span>
               </>
             )}
           </div>
@@ -95,7 +165,7 @@ export default function PhaseOnePage() {
     <>
       <div className="min-h-dvh max-h-dvh bg-surface-container flex flex-col justify-center items-center gap-8 p-8">
         <div className="rounded-xl shadow-xl outline outline-primary outline-8 w-fit">
-          <video ref={videoRef} width={"1280"} height={"720"} />
+          <canvas ref={canvasRef} width={"1280"} height={"720"} />
         </div>
 
         <div className="flex gap-4 items-center text-on-surface text-xl">
