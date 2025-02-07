@@ -36,7 +36,7 @@ class APIService {
         if (token) {
           config.headers["Authorization"] = `Bearer ${token}`;
         }
-
+        config.headers["Token"] = import.meta.env.VITE_BOOTH_TOKEN;
         console.info(`[Request] ${config.method?.toUpperCase()} ${config.url}`);
         return config;
       },

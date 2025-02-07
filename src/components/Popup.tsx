@@ -1,30 +1,33 @@
-import React from "react";
+import React, { ReactNode } from "react";
 import { usePopup } from "../contexts/PopupContext";
+import Button from "./Button.tsx";
 
 interface ConfirmPopupProps {
   message: string;
+  confirmLabel?: string;
+  rejectLabel?: string;
   onConfirm: () => void;
   onReject: () => void;
 }
 
 export const ConfirmPopup: React.FC<ConfirmPopupProps> = ({
   message,
+  confirmLabel = "Yes",
   onConfirm,
+  rejectLabel = "No",
   onReject,
 }) => {
   return (
     <div className="popup-overlay">
-      <div className="popup-content">
-        <p className="text-lg font-medium text-gray-800 dark:text-gray-200">
-          {message}
-        </p>
+      <div className="popup-content flex flex-col items-center px-[8rem] gap-[4rem]">
+        <p className="text-4xl font-medium text-on-surface">{message}</p>
         <div className="mt-4 flex justify-center space-x-4">
-          <button className="btn bg-primary text-on-primary" onClick={onReject}>
-            No
-          </button>
-          <button className="btn" onClick={onConfirm}>
-            Yes
-          </button>
+          <Button className="px-8" variant="fill" onClick={onReject}>
+            {rejectLabel}
+          </Button>
+          <Button className="px-8" type="danger" onClick={onConfirm}>
+            {confirmLabel}
+          </Button>
         </div>
       </div>
     </div>
@@ -47,19 +50,16 @@ export const InfoPopup: React.FC<InfoPopupProps> = ({ message }) => {
 };
 
 interface GenericPopupProps {
-  content: React.ReactNode;
+  children: ReactNode;
 }
 
-export const GenericPopup: React.FC<GenericPopupProps> = ({ content }) => {
+export function GenericPopup({ children }: GenericPopupProps) {
   return (
     <div className="popup-overlay">
-      <div className="popup-content">
-        {content}
-        <button>Close</button>
-      </div>
+      <div className="popup-content">{children}</div>
     </div>
   );
-};
+}
 
 export const Popup: React.FC = () => {
   const { popupContent, hidePopup } = usePopup();
@@ -74,7 +74,7 @@ export const Popup: React.FC = () => {
         onClick={hidePopup}
       >
         <div
-          className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full relative"
+          className="bg-surface border-4 border-outline p-8 max-h-4xl max-w-4xl w-full relative"
           onClick={(e) => e.stopPropagation()}
         >
           {popupContent}

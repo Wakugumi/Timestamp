@@ -9,41 +9,22 @@ export default function WelcomePage() {
 
   const handleLaunch = () => {
     localStorage.setItem("hasUserInteracted", "true");
-    phase.setCurrentPhase(1);
-    navigate("phase1");
+    phase.setCurrentPhase(2);
+    navigate("phase2");
   };
 
   return (
     <>
       <div
-        className="grid grid-cols-2 grid-rows-2 gap-0
-        min-w-full max-h-svh"
+        className="flex flex-col justify-center items-center gap-4 p-[12rem]
+        min-w-full max-h-svh text-on-surface"
+        onClick={handleLaunch}
       >
-        <div className="row-span-2">
-          <div className="h-full overflow-hidden">
-            <WelcomeBanner />
-          </div>
-        </div>
-        <div
-          className="col-start-2 row-start-1
-            flex justify-center items-center"
-        >
-          <h1 className="text-8xl text-primary">Timestamp</h1>
-        </div>
-        <div
-          className="col-start-2
-            flex justify-center items-center gap-4"
-        >
-          <button
-            className="btn py-8 px-16 text-xl flex items-center gap-4"
-            onClick={handleLaunch}
-          >
-            <Icon type="launch" />
-            Start
-          </button>
-        </div>
+        <Icon type="camera" size="8rem"></Icon>
+
+        <h1 className="font-bold text-on-surface text-8xl">TIMESTAMP</h1>
+        <span className="text-4xl">Press the screen to continue</span>
       </div>
     </>
   );
 }
-

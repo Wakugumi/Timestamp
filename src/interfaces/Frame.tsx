@@ -43,4 +43,10 @@ export default interface Frame {
    * @type {string}
    */
   url?: string;
+
+  /**
+   * A condition where the size of the frame requires the printer to cut the print size, giving user two pieces of paper
+   * @type {string}
+   */
+  split: boolean;
 }

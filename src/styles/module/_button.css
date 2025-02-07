@@ -1,8 +1,9 @@
 .btn {
-    @apply block relative font-semibold p-4 rounded-lg bg-surface text-on-surface shadow
-    outline outline-1 outline-outline-variant items-center
+  @apply inline relative font-semibold p-4 rounded-lg bg-surface text-on-surface shadow
+    outline outline-1 outline-outline-variant items-center;
 }
 
 .btn:active {
-    @apply shadow-none bg-primary text-on-primary;
+  @apply shadow-none bg-primary text-on-primary;
 }
+

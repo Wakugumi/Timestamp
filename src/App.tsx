@@ -5,7 +5,6 @@ import WelcomePage from "./pages/WelcomePage";
 import PhaseOnePage from "./pages/PhaseOnePage";
 import ProtectedRoute from "./components/navigation/ProtectedRoute";
 import { PhaseProvider } from "./contexts/PhaseContext";
-import PhaseThreePage from "./pages/PhaseThreePage";
 import SettingPage from "./pages/SettingPage";
 import PhaseTwoPage from "./pages/PhaseTwoPage";
 import { PopupProvider } from "./contexts/PopupContext";
@@ -42,10 +41,10 @@ function App() {
     return (
       <>
         <div
-          className="min-h-dvh max-h-dvh bg-surface-container"
+          className="min-h-dvh max-h-dvh bg-surface-container font-work"
           style={{
             backgroundImage: `url("${ThemeManager.getUrl()}")`,
-            objectFit: "cover",
+            backgroundSize: "cover",
           }}
         >
           <PhaseProvider>
@@ -64,7 +63,6 @@ function App() {
                     }
                   />
                   <Route path="/phase2" element={<PhaseTwoPage />} />
-                  <Route path="/phase3" element={<PhaseThreePage />} />
                 </Routes>
               </BrowserRouter>
             </PopupProvider>

@@ -17,7 +17,7 @@ const api = axios.create({
 });
 
 export default class BoothManager {
-  private static boothId: string | undefined = "679dbde42a43170dc7608e5f";
+  private static boothId: string | undefined = import.meta.env.VITE_BOOTH_TOKEN;
   private static theme: Theme;
 
   /**

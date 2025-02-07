@@ -11,8 +11,16 @@ function argbToHex(argb: number): string {
 export async function colorGenerator(image: HTMLImageElement) {
   return await themeFromImage(image)
     .then((value) => {
-      return value.schemes.light.toJSON();
+      const obj: Record<string, number> = value.schemes.light.toJSON();
+      obj["surfaceContainerLowest"] = value.palettes.neutral.tone(100);
+      obj["surfaceContainerLow"] = value.palettes.neutral.tone(96);
+      obj["surfaceContainer"] = value.palettes.neutral.tone(92);
+      obj["surfaceContainerHigh"] = value.palettes.neutral.tone(87);
+      obj["surfaceContainerHighest"] = value.palettes.neutral.tone(81);
+
+      return obj;
     })
+
     .catch((error) => {
       throw new DeviceError(error);
     });
@@ -20,7 +28,6 @@ export async function colorGenerator(image: HTMLImageElement) {
 
 export function applyColors(colors: Record<string, number>) {
   const root = document.documentElement;
-  console.log("Color generated: ", colors);
   Object.entries(colors).forEach(([key, value]) => {
     root.style.setProperty(`--color-${key}`, argbToHex(value));
   });

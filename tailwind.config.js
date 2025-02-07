@@ -3,6 +3,12 @@ export default {
   content: ["./index.html", "./src/**/*.{html,js,ts,tsx}"],
   theme: {
     extend: {
+      boxShadow: {
+        DEFAULT: "8px 8px 0 0 var(--color-shadow)",
+      },
+      fontFamily: {
+        sans: ["Montserrat", "serif"],
+      },
       colors: {
         primary: "var(--color-primary)",
         "surface-tint": "var(--color-surfaceTint)",
