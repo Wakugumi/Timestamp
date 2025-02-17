@@ -11,7 +11,8 @@ import { PopupProvider } from "./contexts/PopupContext";
 import { Popup } from "./components/Popup";
 import BoothManager from "./services/BoothManager";
 import LoggerService from "./services/LoggerService";
-import ThemeManager from "./services/ThemeManager";
+import PhaseThreePage from "./pages/PhaseThreePage";
+import TestPage from "./pages/TestPage";
 
 enum State {
   LOADING = 0,
@@ -41,11 +42,11 @@ function App() {
     return (
       <>
         <div
-          className="min-h-dvh max-h-dvh bg-surface-container font-work"
-          style={{
-            backgroundImage: `url("${ThemeManager.getUrl()}")`,
-            backgroundSize: "cover",
-          }}
+          className="min-h-dvh max-h-dvh bg-background font-work"
+          //style={{
+          //  backgroundImage: `url("${ThemeManager.getUrl()}")`,
+          //  backgroundSize: "cover",
+          //}}
         >
           <PhaseProvider>
             <PopupProvider>
@@ -62,7 +63,16 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
-                  <Route path="/phase2" element={<PhaseTwoPage />} />
+                  <Route
+                    path="/phase2"
+                    element={
+                      <ProtectedRoute phaseNumber={2}>
+                        <PhaseTwoPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="/test" element={<TestPage />} />
+                  <Route path="/phase3" element={<PhaseThreePage />} />
                 </Routes>
               </BrowserRouter>
             </PopupProvider>

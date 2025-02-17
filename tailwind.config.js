@@ -4,10 +4,15 @@ export default {
   theme: {
     extend: {
       boxShadow: {
-        DEFAULT: "8px 8px 0 0 var(--color-shadow)",
+        DEFAULT: `1px 1px 0px var(--color-scrim),
+                2px 2px 0px var(--color-scrim),
+                3px 3px 0px var(--color-scrim),
+                4px 4px 0px var(--color-scrim),
+                5px 5px 0px var(--color-scrim),
+                6px 6px 0px var(--color-scrim);`,
       },
       fontFamily: {
-        sans: ["Montserrat", "serif"],
+        sans: ["Roboto Mono", "serif"],
       },
       colors: {
         primary: "var(--color-primary)",

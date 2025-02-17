@@ -49,4 +49,10 @@ export default interface Frame {
    * @type {string}
    */
   split: boolean;
+
+  /**
+   * Aspect ratio of the frame
+   * @type {number}
+   */
+  aspectRatio?: number;
 }

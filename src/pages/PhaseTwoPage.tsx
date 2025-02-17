@@ -1,7 +1,6 @@
 import Slider from "react-slick";
-import "slick-carousel/slick/slick.scss";
+import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import "./PhaseTwoPage.css";
 import React, {
   useRef,
   useState,
@@ -9,6 +8,7 @@ import React, {
   act,
   MouseEventHandler,
 } from "react";
+import "./PhaseTwoPage.css";
 import { usePopup } from "../contexts/PopupContext.tsx";
 import { ConfirmPopup, GenericPopup } from "../components/Popup.tsx";
 import { useNavigate } from "react-router";
@@ -21,11 +21,18 @@ import LazyImage from "../components/LazyImage.tsx";
 import ErrorPage from "../components/ErrorPage.tsx";
 import { AppError } from "../helpers/AppError.tsx";
 import { usePhase } from "../contexts/PhaseContext.tsx";
+import useIdleTimer from "../hooks/useIdleTimer.tsx";
+import IdleMessage from "../components/IdleMessage.tsx";
+import imageAspectRatio from "../utilities/imageAspectRatio.tsx";
+import LoadingAnimation from "../components/LoadingAnimation.tsx";
+import Page from "../components/Page.tsx";
+import ExitButton from "../components/ExitButton.tsx";
 enum State {
   LOADING = 0,
   RUNNING = 1,
   ERROR = 2,
   SELECT = 3,
+  STARTUP = 4,
 }
 
 interface ConfirmPopupProps {
@@ -44,25 +51,25 @@ function ConfirmPrompt({ frame, onCancel, onConfirm }: ConfirmPopupProps) {
   return (
     <>
       <div
-        className="flex flex-row justify-center items-center
-      bg-surface border-2 border-outline p-12"
+        className="flex flex-row justify-start items-start
+      bg-surface border-2 border-outline p-12 gap-12 min-h-full items-stretch"
       >
         <div className="flex-1 flex justify-center items-center">
           <LazyImage
             src={frame.url ? frame.url : ""}
-            className="w-auto h-[18rem]"
+            className="w-auto h-[48rem]"
           />
         </div>
 
-        <div className="flex-1 flex flex-col justify-start items-start gap-4">
-          <span className="text-4xl">{frame.name}</span>
+        <div className="flex-1 flex flex-col justify-between">
+          <span className="text-6xl">{frame.name}</span>
 
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap gap-4 text-2xl">
             <div
               className="flex flex-row justify-center items-center gap-4
-            p-4 border border-outline rounded-full bg-surface-container-low text-on-surface"
+            px-4 py-2 border border-outline rounded-full bg-surface-container-low text-on-surface"
             >
-              <Icon type="print"></Icon>
+              <Icon type="print" size="3rem"></Icon>
               <span>
                 {frame.split ? "2 piece of paper" : "1 piece of paper"}
               </span>
@@ -70,29 +77,29 @@ function ConfirmPrompt({ frame, onCancel, onConfirm }: ConfirmPopupProps) {
 
             <div
               className="flex flex-row justify-center items-center gap-4
-            p-4 border border-outline rounded-full bg-surface-container-low text-on-surface"
+            px-4 py-2 border border-outline rounded-full bg-surface-container-low text-on-surface"
             >
-              <Icon type="photo"></Icon>
+              <Icon type="photo" size="3rem"></Icon>
               <span>{frame.count} photos in frame</span>
             </div>
 
             <div
               className="flex flex-row justify-center items-center gap-4
-            p-4 border border-outline rounded-full bg-surface-container-low text-on-surface"
+            px-4 py-2 border border-outline rounded-full bg-surface-container-low text-on-surface"
             >
-              <Icon type="print"></Icon>
+              <Icon type="print" size="3rem"></Icon>
               <span>{frame.count * 2}x capture</span>
             </div>
           </div>
 
-          <div className="flex w-full flex-row justify-between items-center">
+          <div className="flex w-full flex-row justify-between items-center text-4xl">
             <div>Subtotal</div>
-            <div className="font-bold text-xl">{formatPrice(frame.price)}</div>
+            <div className="font-bold">{formatPrice(frame.price)}</div>
           </div>
 
           <div className="flex w-full flex-row gap-4">
             <Button
-              className="flex"
+              className="flex-1 text-4xl"
               type="danger"
               variant="outline"
               onClick={onCancel}
@@ -101,7 +108,7 @@ function ConfirmPrompt({ frame, onCancel, onConfirm }: ConfirmPopupProps) {
             </Button>
 
             <Button
-              className="flex"
+              className="flex-1 text-4xl"
               type="primary"
               variant="fill"
               onClick={onConfirm}
@@ -116,32 +123,44 @@ function ConfirmPrompt({ frame, onCancel, onConfirm }: ConfirmPopupProps) {
 }
 
 export default function PhaseTwoPage() {
+  const [state, setState] = useState<State>(State.STARTUP);
   const navigate = useNavigate();
   const phase = usePhase();
+  const [isIdle, setIsIdle] = useState<boolean>(true);
+  const idleMessage = useIdleTimer(300000, isIdle);
+  const errorIdle = useIdleTimer(10000, state === State.ERROR);
   const [activeSlide, setActiveSlide] = useState(0);
   const { showPopup, hidePopup } = usePopup();
   const [frames, setFrames] = useState<Frame[]>([]);
-  const [state, setState] = useState<State>(State.LOADING);
   const [error, setError] = useState<AppError | null>(null);
 
   useEffect(() => {
+    const framesWithRatio = async (frames: Frame[]) => {
+      return await Promise.all(
+        frames.map(async (frame) => {
+          const aspectRatio = await imageAspectRatio(frame.url as string);
+          return { ...frame, aspectRatio };
+        }),
+      );
+    };
     const getFrames = async () => {
       try {
-        const fetchedFrames = await FrameService.getFrames();
-
-        setFrames(fetchedFrames);
-
-        setState(State.RUNNING);
+        await FrameService.getFrames().then(async (value) => {
+          setFrames(value);
+          setState(State.RUNNING);
+        });
       } catch (error) {
         setState(State.ERROR);
+
         setError(error as AppError);
       }
     };
 
-    if (state === State.LOADING) {
+    console.log(frames);
+    if (state === State.STARTUP) {
       getFrames();
     }
-  }, [state, frames]);
+  }, [state]);
 
   const handleExit = () => {
     showPopup(
@@ -163,7 +182,11 @@ export default function PhaseTwoPage() {
     setState(State.SELECT);
   };
 
-  const handleConfirm = () => {};
+  const handleConfirm = () => {
+    setState(State.LOADING);
+    phase.setCurrentPhase(3);
+    navigate("/phase3", { state: frames[activeSlide] });
+  };
 
   const settings = {
     customPaging: function (i: number) {
@@ -177,23 +200,24 @@ export default function PhaseTwoPage() {
       );
     },
     className: "center",
-    dotsClass: "slick-dots slick-items",
-    slidesToShow: 1,
-    slidesToScroll: 1,
+    centerMode: true,
+    infinite: true,
     dots: true,
+    dotsClass: "slider-dots",
+    slidesToShow: 3,
 
     speed: 200,
   };
-
   return (
-    <div className="min-h-lvh max-h-lvh flex flex-col items-center gap-12 text-on-surface p-8">
-      {/* ------------------------------ FRAME SELECTOR ------------------------------ */}
-
-      <div className="flex-none flex items-center my-8">
-        <h1 className="font-bold text-[4rem]">PICK YOUR FRAME</h1>
+    <Page className="flex flex-col justify-center text-on-surface">
+      <div className="flex-none flex justify-center">
+        <h1 className="font-bold text-[4rem]">Select Frame</h1>
       </div>
 
-      <div className="flex-1">
+      <IdleMessage message={idleMessage as string} />
+
+      <div className="flex-1 flex flex-col justify-center">
+        <ExitButton />
         {state === State.SELECT && (
           <ConfirmPrompt
             frame={frames[activeSlide]}
@@ -207,49 +231,34 @@ export default function PhaseTwoPage() {
         )}
 
         {state === State.RUNNING && (
+          <div className="slider-container">
+            <Slider {...settings}>
+              {frames.map((value, index) => (
+                <div className="" key={index}>
+                  <LazyImage
+                    src={value.url as string}
+                    className="object-fit h-[24rem] mx-auto"
+                  />
+                  <span className="flex text-4xl justify-center mt-4">
+                    {formatPrice(value.price) as string}
+                  </span>
+                </div>
+              ))}
+            </Slider>
+          </div>
+        )}
+        {state === State.ERROR && (
           <>
-            <div
-              className="absolute top-0 left-0 m-[4rem] rounded-full border-4 p-4 border-outline text-on-surface"
-              onClick={() => handleExit()}
-            >
-              <Icon type="close" size="4rem" />
-            </div>
-
-            <div className="flex flex-wrap gap-[12rem]">
-              {frames.map((frame, index) => {
-                return (
-                  <div
-                    key={index}
-                    className="flex flex-col items-center gap-4"
-                    onClick={() => handleSelect(index)}
-                  >
-                    <span
-                      className="font-bold text-xl py-4 px-8 bg-surface-container-lowest text-on-surface
-                  border border-outline-variant rounded-full"
-                    >
-                      {frame.name}
-                    </span>
-                    <LazyImage
-                      src={frame.url as string}
-                      className="w-auto h-[24rem]"
-                    />
-                    <span className="text-xl font-bold">
-                      {formatPrice(frame.price)}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
+            <IdleMessage message={errorIdle as string}></IdleMessage>
+            <ErrorPage
+              message={error?.userMessage as string}
+              code={error?.code}
+            />
           </>
         )}
 
-        {state === State.ERROR && (
-          <ErrorPage
-            message={error?.userMessage as string}
-            code={error?.code}
-          />
-        )}
+        {state === State.LOADING && <LoadingAnimation />}
       </div>
-    </div>
+    </Page>
   );
 }

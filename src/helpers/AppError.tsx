@@ -52,9 +52,18 @@ export class DeviceError extends AppError {
 export class FileSystemError extends AppError {
   constructor(
     technicalMessage: string,
-    userMessage: string = "We're very sorry, our programseems to be trouble running",
+    userMessage: string = "We're very sorry, our program seems to be trouble running",
   ) {
     super("FileSystemError", "FILESYSTEM_ERROR", technicalMessage, userMessage);
+  }
+}
+
+export class ElectronError extends AppError {
+  constructor(
+    technicalMessage: string,
+    userMessage: string = "We're very sorry, the app seems not working",
+  ) {
+    super("ElectronError", "ELECTRON_ERROR", technicalMessage, userMessage);
   }
 }
 

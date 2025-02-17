@@ -1,19 +1,30 @@
-.slick-items {
-  bottom: -2rem;
-}
-.slick-dots {
-  position: relative;
-}
-.slick-dots li {
-  height: auto;
-  width: auto;
-}
-.slick-items li.slick-active img {
-  @apply outline outline-primary rounded p-4 shadow-xl;
+.slick-current img {
+  height: 32rem;
 }
 
 .slick-item {
+  object-fit: contain;
   height: 8rem;
   width: 8rem;
-  object-fit: contain;
+}
+.slider-dots {
+  margin-top: 8rem;
+  display: flex !important;
+  justify-content: center;
+  flex-direction: row;
+  gap: 4rem;
+}
+.slider-dots .slick-active {
+  outline: solid 0.25rem var(--color-primary);
+  border-radius: 4px;
+  padding: 4px;
+}
+.slick-track {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.slick-slide {
+  margin-top: auto;
+  margin-bottom: auto;
 }

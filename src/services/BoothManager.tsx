@@ -17,6 +17,7 @@ const api = axios.create({
 });
 
 export default class BoothManager {
+  private static boothInstance: Booth;
   private static boothId: string | undefined = import.meta.env.VITE_BOOTH_TOKEN;
   private static theme: Theme;
 
@@ -26,6 +27,14 @@ export default class BoothManager {
    */
   get boothId(): string | undefined {
     return this.boothId;
+  }
+
+  /**
+   * Get current Booth instance
+   * @returns {Booth} booth instance
+   */
+  static get Booth(): Booth {
+    return this.boothInstance;
   }
 
   /**
@@ -47,6 +56,7 @@ export default class BoothManager {
         },
       })
       .then((response) => {
+        this.boothInstance = response.data.booth;
         this.theme = response.data.theme;
       });
 

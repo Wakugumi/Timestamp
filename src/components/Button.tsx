@@ -43,7 +43,7 @@ export default function Button({
   return (
     <>
       <button
-        className={`p-4 transition-all shadow active:shadow-none ${styles[type][variant]} ${className}`}
+        className={`p-4 rounded-full transition-all ${styles[type][variant]} ${className}`}
         onClick={onClick}
       >
         {children}

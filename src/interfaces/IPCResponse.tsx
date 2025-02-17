@@ -25,6 +25,9 @@ export default class IPCResponse<T> {
     this.headers = headers;
   }
 
+  get STATUS() {
+    return this.status;
+  }
   get OK() {
     return this.status === StatusCode.OK;
   }

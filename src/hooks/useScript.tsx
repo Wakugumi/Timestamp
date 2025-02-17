@@ -5,19 +5,27 @@ import { useEffect } from "react";
  * This is necessary since how React works.
  * @returns in return, this remove the script tag
  */
-const useScript = (url: string) => {
+const useScript = (src: string, attributes?: Record<string, string>) => {
   useEffect(() => {
+    if (document.querySelector(`script[src="${src}"]`)) {
+      return;
+    }
     const script = document.createElement("script");
 
-    script.src = url;
+    script.src = src;
     script.async = true;
+
+    if (attributes)
+      Object.entries(attributes).forEach(([key, value]) => {
+        script.setAttribute(key, value);
+      });
 
     document.body.appendChild(script);
 
     return () => {
       document.body.removeChild(script);
     };
-  }, [url]);
+  }, [src, attributes]);
 };
 
 export default useScript;

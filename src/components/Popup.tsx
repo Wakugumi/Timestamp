@@ -74,7 +74,7 @@ export const Popup: React.FC = () => {
         onClick={hidePopup}
       >
         <div
-          className="bg-surface border-4 border-outline p-8 max-h-4xl max-w-4xl w-full relative"
+          className="bg-surface rounded-xl border-4 border-outline p-8 max-h-4xl max-w-4xl w-full relative"
           onClick={(e) => e.stopPropagation()}
         >
           {popupContent}
