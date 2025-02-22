@@ -27,6 +27,13 @@ import imageAspectRatio from "../utilities/imageAspectRatio.tsx";
 import LoadingAnimation from "../components/LoadingAnimation.tsx";
 import Page from "../components/Page.tsx";
 import ExitButton from "../components/ExitButton.tsx";
+import SelectPills from "../components/inputs/SelectPills.tsx";
+import Dropdown from "../components/Dropdown.tsx";
+import LoggerService from "../services/LoggerService.tsx";
+import Select from "../components/Select.tsx";
+import ThemeManager from "../services/ThemeManager.tsx";
+import Theme from "../interfaces/Theme.tsx";
+import Selector from "../components/Selector.tsx";
 enum State {
   LOADING = 0,
   RUNNING = 1,
@@ -121,6 +128,10 @@ function ConfirmPrompt({ frame, onCancel, onConfirm }: ConfirmPopupProps) {
     </>
   );
 }
+interface FrameFilters {
+  theme: Theme[];
+  count: number[];
+}
 
 export default function PhaseTwoPage() {
   const [state, setState] = useState<State>(State.STARTUP);
@@ -129,39 +140,66 @@ export default function PhaseTwoPage() {
   const [isIdle, setIsIdle] = useState<boolean>(true);
   const idleMessage = useIdleTimer(300000, isIdle);
   const errorIdle = useIdleTimer(10000, state === State.ERROR);
-  const [activeSlide, setActiveSlide] = useState(0);
   const { showPopup, hidePopup } = usePopup();
+  const [rawFrames, setRawFrames] = useState<Frame[]>([]);
   const [frames, setFrames] = useState<Frame[]>([]);
+  const [filters, setFilters] = useState<FrameFilters>({
+    theme: [],
+    count: [],
+  });
+  const [filterTheme, setFilterTheme] = useState<string>("");
+  const [filterCount, setFilterCount] = useState<number>(-1);
   const [error, setError] = useState<AppError | null>(null);
+  const [selected, setSelected] = useState<Frame | null>(null);
 
-  useEffect(() => {
-    const framesWithRatio = async (frames: Frame[]) => {
-      return await Promise.all(
-        frames.map(async (frame) => {
-          const aspectRatio = await imageAspectRatio(frame.url as string);
-          return { ...frame, aspectRatio };
-        }),
-      );
-    };
-    const getFrames = async () => {
-      try {
-        await FrameService.getFrames().then(async (value) => {
-          setFrames(value);
-          setState(State.RUNNING);
+  const framesWithRatio = async (frames: Frame[]) => {
+    return await Promise.all(
+      frames.map(async (frame) => {
+        const aspectRatio = await imageAspectRatio(frame.url as string);
+        return { ...frame, aspectRatio };
+      }),
+    );
+  };
+  const startup = async () => {
+    try {
+      await FrameService.getFrames().then(async (value) => {
+        console.log("frameservice returns", value);
+        setRawFrames(value as Frame[]);
+        setFrames(value as Frame[]);
+        setFilters({
+          count: [...new Set((value as Frame[]).map((x) => x.count))],
+          theme: [],
         });
-      } catch (error) {
-        setState(State.ERROR);
 
-        setError(error as AppError);
-      }
-    };
+        const themeName = await ThemeManager.getThemeNameFromFrames(
+          value as Frame[],
+        );
+        console.log(themeName);
 
-    console.log(frames);
-    if (state === State.STARTUP) {
-      getFrames();
+        setFilters((prev) => ({
+          ...prev,
+          theme: themeName,
+        }));
+        setState(State.RUNNING);
+      });
+    } catch (error) {
+      LoggerService.error(error as string);
+      setState(State.ERROR);
+      setError(error as AppError);
     }
+  };
+  useEffect(() => {
+    if (state === State.STARTUP) startup();
   }, [state]);
 
+  /** Handles filter for number of pictures */
+  useEffect(() => {
+    if (state !== State.RUNNING && rawFrames.length <= 0) return;
+    if (filterCount < 0) setFrames(rawFrames);
+    else setFrames(rawFrames.filter((frame) => frame.count === filterCount));
+  }, [filterCount]);
+
+  const handleFilter = () => {};
   const handleExit = () => {
     showPopup(
       <ConfirmPopup
@@ -177,88 +215,96 @@ export default function PhaseTwoPage() {
     );
   };
 
-  const handleSelect = (index: number) => {
-    setActiveSlide(index);
+  const handleSelect = () => {
     setState(State.SELECT);
   };
 
   const handleConfirm = () => {
     setState(State.LOADING);
     phase.setCurrentPhase(3);
-    navigate("/phase3", { state: frames[activeSlide] });
+    navigate("/phase3", { state: selected });
   };
+  if (state === State.LOADING)
+    return (
+      <Page>
+        <LoadingAnimation />
+      </Page>
+    );
 
-  const settings = {
-    customPaging: function (i: number) {
-      return (
-        <a>
-          <img
-            src={frames[i].url}
-            className="slick-item bg-surface object-fit"
+  if (state === State.SELECT)
+    return (
+      <ConfirmPrompt
+        frame={selected as Frame}
+        onCancel={() => {
+          setState(State.RUNNING);
+        }}
+        onConfirm={() => {
+          handleConfirm();
+        }}
+      />
+    );
+
+  if (state === State.RUNNING)
+    return (
+      <Page className="flex flex-col justify-center text-on-surface gap-8">
+        <div className="flex-none flex justify-center">
+          <h1 className="font-bold text-[4rem]">Select Frame</h1>
+        </div>
+
+        {/** <!-- RENDER: Filters menu -->*/}
+        <div className="flex-none flex justify-center gap-8">
+          <Select
+            options={filters.count.map((x) => ({
+              value: x,
+              label: x,
+            }))}
+            value={filterCount}
+            label="No. of Pictures"
+            onChange={(x) => setFilterCount(x)}
           />
-        </a>
-      );
-    },
-    className: "center",
-    centerMode: true,
-    infinite: true,
-    dots: true,
-    dotsClass: "slider-dots",
-    slidesToShow: 3,
 
-    speed: 200,
-  };
-  return (
-    <Page className="flex flex-col justify-center text-on-surface">
-      <div className="flex-none flex justify-center">
-        <h1 className="font-bold text-[4rem]">Select Frame</h1>
-      </div>
-
-      <IdleMessage message={idleMessage as string} />
-
-      <div className="flex-1 flex flex-col justify-center">
-        <ExitButton />
-        {state === State.SELECT && (
-          <ConfirmPrompt
-            frame={frames[activeSlide]}
-            onCancel={() => {
-              setState(State.RUNNING);
-            }}
-            onConfirm={() => {
-              handleConfirm();
-            }}
+          <Select
+            options={filters.theme.map((x) => ({ value: x.id, label: x.name }))}
+            value={filterTheme}
+            label="Theme"
+            onChange={(x) => setFilterTheme(x)}
           />
-        )}
+        </div>
 
-        {state === State.RUNNING && (
-          <div className="slider-container">
-            <Slider {...settings}>
-              {frames.map((value, index) => (
-                <div className="" key={index}>
-                  <LazyImage
-                    src={value.url as string}
-                    className="object-fit h-[24rem] mx-auto"
-                  />
-                  <span className="flex text-4xl justify-center mt-4">
-                    {formatPrice(value.price) as string}
-                  </span>
-                </div>
-              ))}
-            </Slider>
+        <div className="flex-1 flex flex-col justify-center">
+          <ExitButton />
+          <Selector onSelect={(index) => setSelected(frames[index])}>
+            {frames.map((value, index) => (
+              <div className="" key={index}>
+                <LazyImage
+                  src={value.url as string}
+                  className="object-fit h-[24rem] mx-auto"
+                />
+                <span className="flex text-4xl justify-center mt-4">
+                  {formatPrice(value.price) as string}
+                </span>
+              </div>
+            ))}
+          </Selector>
+          <div className="flex flex-row justify-end items-center">
+            <Button
+              type="primary"
+              variant="fill"
+              onClick={handleSelect}
+              className="text-4xl px-12"
+            >
+              Select
+            </Button>
           </div>
-        )}
-        {state === State.ERROR && (
-          <>
-            <IdleMessage message={errorIdle as string}></IdleMessage>
-            <ErrorPage
-              message={error?.userMessage as string}
-              code={error?.code}
-            />
-          </>
-        )}
+        </div>
+      </Page>
+    );
 
-        {state === State.LOADING && <LoadingAnimation />}
-      </div>
-    </Page>
-  );
+  if (state === State.ERROR)
+    return (
+      <>
+        <IdleMessage message={errorIdle as string}></IdleMessage>
+        <ErrorPage message={error?.userMessage as string} code={error?.code} />
+      </>
+    );
 }

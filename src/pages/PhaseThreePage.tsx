@@ -1,4 +1,4 @@
-import { useLocation, useParams } from "react-router";
+import { useLocation, useNavigate, useParams } from "react-router";
 import useScript from "../hooks/useScript";
 import BoothManager from "../services/BoothManager";
 import { useEffect, useState } from "react";
@@ -10,9 +10,11 @@ import "./PhaseThreePage.scss";
 import LoggerService from "../services/LoggerService";
 import { useSearchParams } from "react-router";
 import PaymentCallback from "../interfaces/PaymentCallback";
-import { Payment } from "electron/main";
 import BackendService from "../services/BackendService";
 import Button from "../components/Button";
+import { usePopup } from "../contexts/PopupContext";
+import { ConfirmPopup } from "../components/Popup";
+import { usePhase } from "../contexts/PhaseContext";
 
 enum State {
   STARTUP = 0,
@@ -29,8 +31,10 @@ enum State {
  */
 export default function PhaseThreePage() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const phase = usePhase();
   const [searchParams, setSearchParams] = useSearchParams();
-
+  const { showPopup, hidePopup } = usePopup();
   const [state, setState] = useState<State>(State.STARTUP);
   const [token, setToken] = useState<string>("");
   const [error, setError] = useState<string>("");
@@ -46,6 +50,24 @@ export default function PhaseThreePage() {
     )
       return true;
     else return false;
+  };
+  const handleExit = () => {
+    showPopup(
+      <ConfirmPopup
+        message="Are you sure to cancel?"
+        onReject={() => {
+          hidePopup();
+        }}
+        onConfirm={() => {
+          navigate("/");
+          hidePopup();
+        }}
+      ></ConfirmPopup>,
+    );
+  };
+  const handleNext = () => {
+    phase.setCurrentPhase(4);
+    navigate("/phase4");
   };
 
   useEffect(() => {
@@ -75,8 +97,8 @@ export default function PhaseThreePage() {
           LoggerService.info(
             `Payment has been resolved ${result.transaction_id}`,
           );
-          setState(State.SUCCESS);
           window.snap.hide();
+          setState(State.SUCCESS);
           return;
         },
         onPending: function (result: PaymentCallback) {
@@ -96,13 +118,23 @@ export default function PhaseThreePage() {
       });
     }
 
+    /** @todo Work on this callback */
+    const paymentCheck = async () => {
+      const check = await BackendService.paymentCallback();
+      console.log(check);
+      if (check?.transaction_status === "settlement") {
+        LoggerService.info("A transaction has been settled");
+        return;
+      }
+    };
     if (state === State.SUCCESS) {
-      BackendService.paymentCallback().then((params) => {
-        if (params?.transaction_status !== "success") {
-          setState(State.ERROR);
-          setError("Payment callback returns error");
-        }
-      });
+      paymentCheck();
+      setToken("");
+      (async () => {
+        await setTimeout(() => {
+          handleNext();
+        }, 3000);
+      })();
     }
   }, [state]);
 
@@ -134,8 +166,8 @@ export default function PhaseThreePage() {
               <div className="icon-fix"></div>
             </div>
           </div>
-          <span className="text-xl font-bold text-on-surface slide-in">
-            PAYMENT SUCCESS
+          <span className="text-4xl font-bold text-on-surface slide-in">
+            Payment Success :D
           </span>
         </Page>
       </>
@@ -146,18 +178,21 @@ export default function PhaseThreePage() {
         <Page className="flex flex-col justify-center items-center p-[8rem]">
           <div
             className="border-2 border-outline p-4
-            flex flex-col justify-center items-center"
+            flex flex-col justify-center items-center gap-4"
           >
-            <span className="font-bold text-xl">PAYMENT FAILED</span>
-            <span>
+            <span className="font-bold text-4xl">PAYMENT FAILED</span>
+            <span className="text-xl">
               Seems like you close the payment window to cancel or
               unintentionally
             </span>
 
-            <div className="flex flex-col justify-between">
-              <Button type="danger">Cancel</Button>
+            <div className="flex flex-row justify-center gap-4 text-xl">
+              <Button type="danger" onClick={handleExit}>
+                Cancel
+              </Button>
               <Button
                 type="primary"
+                variant="fill"
                 onClick={() => {
                   setState(State.RUNNING);
                 }}

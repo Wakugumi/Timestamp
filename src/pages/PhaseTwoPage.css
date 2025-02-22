@@ -28,3 +28,12 @@
   margin-top: auto;
   margin-bottom: auto;
 }
+
+/** Slider arrows */
+.slick-prev {
+  left: 2rem;
+}
+
+.slick-next {
+  right: 2rem;
+}

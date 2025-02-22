@@ -46,11 +46,8 @@ class BackendService {
   }
 
   public static async paymentCallback() {
-    if (window.electron === undefined) {
-      throw new DeviceError("Electron API is not exposed");
-    }
-
-    return await window.electron?.on("payment", (queryParams) => {
+    return window.electron?.on("payment", (queryParams) => {
+      console.log("Retrieve event from electron", queryParams);
       return queryParams;
     });
   }

@@ -18,16 +18,8 @@ const api = axios.create({
 
 export default class BoothManager {
   private static boothInstance: Booth;
-  private static boothId: string | undefined = import.meta.env.VITE_BOOTH_TOKEN;
+  public static boothId: string | undefined = import.meta.env.VITE_BOOTH_TOKEN;
   private static theme: Theme;
-
-  /**
-   * Get booth id number
-   * @returns {string | undefined}
-   */
-  get boothId(): string | undefined {
-    return this.boothId;
-  }
 
   /**
    * Get current Booth instance
@@ -64,4 +56,19 @@ export default class BoothManager {
   }
 
   public static async boot() {}
+
+  /**
+   * Get all related data to the booth
+   */
+  public static async sync() {
+    return await api
+      .get<BoothInitializeResponse>("/booth/init", {
+        headers: {
+          Token: this.boothId,
+        },
+      })
+      .then((response) => {
+        return response.data;
+      });
+  }
 }

@@ -1,5 +1,7 @@
+import Frame from "../interfaces/Frame";
 import Theme from "../interfaces/Theme";
 import { colorGenerator, applyColors } from "../utilities/colorGenerator";
+import APIService from "./APIService";
 import BoothManager from "./BoothManager";
 
 export default class ThemeManager {
@@ -21,5 +23,20 @@ export default class ThemeManager {
 
   public static getUrl() {
     return BoothManager.Theme.url;
+  }
+
+  /**
+   * @todo Better check the performance using this to filter values
+   *
+   * Gets theme's names from a set for Frame. Filters out the IDs from the Frame[] with all the Theme available at backend
+   * @param {Frame[]} frames
+   * @returns {Promise<string[]>} List of unique theme names from given Frames
+   */
+  public static async getThemeNameFromFrames(frames: Frame[]) {
+    const themes: Theme[] = await APIService.get("themes");
+    const ids = new Set(frames.map((frame) => frame.themeId));
+
+    console.log(ids);
+    return themes.filter((theme) => ids.has(theme.id));
   }
 }
