@@ -9,10 +9,9 @@ export default function WelcomePage() {
 
   const handleLaunch = () => {
     localStorage.setItem("hasUserInteracted", "true");
-    phase.setCurrentPhase(2);
-    navigate("phase2");
+    phase.setCurrentPhase(1);
+    navigate("/phase1");
   };
-
   return (
     <>
       <div

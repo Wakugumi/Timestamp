@@ -12,7 +12,6 @@ class APIService {
   private constructor() {
     this.axiosInstance = axios.create({
       baseURL: "https://timestamp.fun/api",
-      timeout: 10000,
       headers: {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",

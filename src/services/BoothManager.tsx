@@ -1,9 +1,11 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import Booth from "../interfaces/Booth";
 import Frame from "../interfaces/Frame";
 import Theme from "../interfaces/Theme";
 import { Filter } from "../utilities/ImageFilter";
 import ThemeManager from "./ThemeManager";
+import { Network } from "inspector";
+import { NetworkError } from "../helpers/AppError";
 
 type BoothInitializeResponse = {
   booth: Booth;
@@ -14,6 +16,9 @@ type BoothInitializeResponse = {
 
 const api = axios.create({
   baseURL: "https://timestamp.fun/api",
+  headers: {
+    Token: import.meta.env.VITE_BOOTH_TOKEN,
+  },
 });
 
 export default class BoothManager {
@@ -50,12 +55,37 @@ export default class BoothManager {
       .then((response) => {
         this.boothInstance = response.data.booth;
         this.theme = response.data.theme;
+      })
+      .catch((error) => {
+        throw new NetworkError(
+          error as string,
+          "We encounter fatal error, we're sorry for this inconvenience but you cannot use this booth for now :(",
+        );
       });
 
     await ThemeManager.update(this.theme);
   }
 
-  public static async boot() {}
+  public static async boot() {
+    await api
+      .get<BoothInitializeResponse>("/booths/init", {
+        headers: {
+          Token: this.boothId,
+        },
+      })
+      .then((response) => {
+        this.boothInstance = response.data.booth;
+        this.theme = response.data.theme;
+      })
+      .catch((error: AxiosError) => {
+        throw new NetworkError(
+          error.message,
+          "We encounter fatal error, we're sorry for this inconvenience but you cannot use this booth for now :(",
+        );
+      });
+
+    await ThemeManager.update(this.theme);
+  }
 
   /**
    * Get all related data to the booth
@@ -69,6 +99,9 @@ export default class BoothManager {
       })
       .then((response) => {
         return response.data;
+      })
+      .catch((error) => {
+        throw new NetworkError(error as string);
       });
   }
 }

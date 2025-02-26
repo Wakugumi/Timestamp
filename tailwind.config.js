@@ -4,12 +4,8 @@ export default {
   theme: {
     extend: {
       boxShadow: {
-        DEFAULT: `1px 1px 0px var(--color-scrim),
-                2px 2px 0px var(--color-scrim),
-                3px 3px 0px var(--color-scrim),
-                4px 4px 0px var(--color-scrim),
-                5px 5px 0px var(--color-scrim),
-                6px 6px 0px var(--color-scrim);`,
+        inset:
+          "rgba(50, 50, 93, 0.25) 0px 30px 60px -12px inset, rgba(0, 0, 0, 0.3) 0px 18px 36px -18px inset;",
       },
       fontFamily: {
         sans: ["Roboto Mono", "serif"],

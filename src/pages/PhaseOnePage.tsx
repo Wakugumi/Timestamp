@@ -19,6 +19,7 @@ enum PageState {
  */
 export default function PhaseOnePage() {
   const [errorState, setErrorState] = useState<AppError | null>(null);
+  const [loadingState, setLoadingState] = useState<string | null>(null);
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [state, setState] = useState<PageState>(PageState.LOADING);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -27,97 +28,115 @@ export default function PhaseOnePage() {
   const [idle, setIdle] = useState<boolean>(false);
   const idleMessage = useIdleTimer(10 * 1000, idle);
 
-  const cameraSetup = async () => {
-    console.log("await for setup");
+  /** Setup related to internal component */
+  const _cameraSetup = async () => {
+    console.log("[PhaseOnePage] Camera setup");
     await BackendService.setup();
-    // await BackendService.checkup();
-    // console.log("await for checkup");
+    //console.log("[PhaseOnePage] Camera checkup");
+    //await BackendService.checkup();
+    return;
   };
 
-  const cleanSocket = () => {
+  /** Setup related to external resource */
+  const _boothSetup = async () => {};
+
+  /** Centralized setups **/
+  const _setup = async () => {
+    try {
+      setState(PageState.LOADING);
+      setLoadingState("We're checking our camera");
+      await _cameraSetup();
+
+      setLoadingState("We're preparing our booth for use");
+      await _boothSetup();
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  // Handle cleaning socket
+  const _cleanSocket = () => {
     if (socket) {
       socket.close();
       setSocket(null);
     }
   };
 
+  /** Video stream handler */
+  const _videoStream = () => {
+    const newSocket = new WebSocket("ws://localhost:8080");
+    setSocket(newSocket);
+
+    newSocket.binaryType = "blob";
+
+    window.electron?.onStream((chunk) => {
+      if (!canvasRef.current) return;
+      const canvas = canvasRef.current.getContext("2d", {
+        willReadFrequently: true,
+      });
+      const blob = new Blob([chunk]);
+      const img = new Image();
+      img.src = URL.createObjectURL(blob);
+
+      img.onload = function render() {
+        canvas?.clearRect(
+          0,
+          0,
+          canvasRef.current?.width as number,
+          canvasRef.current?.height as number,
+        );
+        canvas?.drawImage(
+          img,
+          0,
+          0,
+          canvasRef.current?.width as number,
+          canvasRef.current?.height as number,
+        );
+        URL.revokeObjectURL(img.src);
+      };
+      img.onerror = function (err) {
+        console.error("Failed to load stream:", err);
+      };
+    });
+
+    newSocket.onclose = () => console.log("socket disconnected");
+  };
+
   // Handles when the page state is changed
   useEffect(() => {
-    if (state === PageState.ERROR) {
-      setIdle(true);
-    }
-  }, [state]);
-
-  useEffect(() => {
-    const initSocket = () => {
-      const newSocket = new WebSocket("ws://localhost:8080");
-      setSocket(newSocket);
-
-      newSocket.binaryType = "blob";
-
-      newSocket.onmessage = (event) => {
-        if (!canvasRef.current) return;
-        const canvas = canvasRef.current.getContext("2d", {
-          willReadFrequently: true,
-        });
-        const blob = new Blob([event.data], { type: "image/jpeg" });
-        const img = new Image();
-        img.src = URL.createObjectURL(blob);
-
-        img.onload = function render() {
-          canvas?.clearRect(
-            0,
-            0,
-            canvasRef.current?.width as number,
-            canvasRef.current?.height as number,
-          );
-          canvas?.drawImage(
-            img,
-            0,
-            0,
-            canvasRef.current?.width as number,
-            canvasRef.current?.height as number,
-          );
-          URL.revokeObjectURL(img.src);
-        };
-        img.onerror = function (err) {
-          console.error("Failed to load stream:", err);
-        };
-      };
-
-      newSocket.onclose = () => console.log("socket disconnected");
-    };
-
     if (state === PageState.RUNNING) {
-      initSocket();
+      _videoStream();
       return () => {
         console.log("Returning?");
         if (socket) socket.close();
         setSocket(null);
       };
     }
+
+    if (state === PageState.ERROR) {
+      setIdle(true);
+    }
   }, [state]);
 
+  /** Main effect, once */
   useEffect(() => {
-    cameraSetup()
+    _setup()
       .then(() => {
         setState(PageState.RUNNING);
-        console.log("Page state is now running");
       })
-      .catch((error) => {
+      .catch((error: AppError) => {
         setState(PageState.ERROR);
         setErrorState(error);
       });
-
     return () => {
-      cleanSocket();
+      _cleanSocket();
     };
   }, []);
 
   const handleProceed = () => {
-    cleanSocket();
-    phaseContext.setCurrentPhase(2);
-    navigate("/phase2");
+    _cleanSocket();
+    phaseContext.setCurrentPhase(5);
+    navigate("/phase5");
   };
 
   if (state !== PageState.RUNNING) {
@@ -145,7 +164,7 @@ export default function PhaseOnePage() {
                   className="m-8 p-8 rounded-lg bg-error w-[40vw] h-[60vh] flex
                   items-end justify-end text-wrap text-on-error text-[4rem] font-bold"
                 >
-                  {errorState?.toString()}
+                  {errorState?.userMessage}
                 </div>
                 <span
                   className="px-8 w-[40vw] flex
@@ -167,7 +186,6 @@ export default function PhaseOnePage() {
         <div className="rounded-xl shadow-xl outline outline-primary outline-8 w-fit">
           <canvas ref={canvasRef} width={"1280"} height={"720"} />
         </div>
-
         <div className="flex gap-4 items-center text-on-surface text-xl">
           <span>Are we good?</span>
           <button className="btn" onClick={handleProceed}>

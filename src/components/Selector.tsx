@@ -43,6 +43,9 @@ export default function Selector({ children, onSelect }: SelectorProps) {
   useEffect(() => {
     onSelect(index);
   }, [index]);
+  useEffect(() => {
+    if (Children.count(children) === 1) setIndex(0);
+  }, [children]);
 
   const [settings, setSettings] = useState<Record<string, any>>({
     nextArrow: <NextArrow />,
@@ -56,25 +59,27 @@ export default function Selector({ children, onSelect }: SelectorProps) {
     speed: 200,
   });
 
-  if (Children.count(children) === 1)
+  if (Children.count(children) <= 0)
     return (
       <>
-        <div className="block relative overflow-hidden">{children}</div>
+        <span className="text-xl">
+          We have nothing here, try adjust filter again.
+        </span>
       </>
     );
-  else if (Children.count(children) === 2)
+  else if (Children.count(children) <= 2)
     return (
       <>
         <div
           className="flex flex-row justify-evenly
-          bg-surface-container-lowest rounded shadow-lg p-12"
+          bg-surface-container-lowest rounded-xl shadow p-12"
         >
           {Children.map(children, (child, i) =>
             cloneElement(child as ReactElement, {
               onClick: () => {
                 setIndex(i);
               },
-              className: `p-8 rounded-xl ${index === i ? `bg-surface-container-highest border-outline` : ``}`,
+              className: `p-8 rounded-xl ${index === i ? `shadow-inset border-outline` : ``}`,
             }),
           )}
         </div>

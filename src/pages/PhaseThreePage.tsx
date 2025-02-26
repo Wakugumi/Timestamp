@@ -15,6 +15,7 @@ import Button from "../components/Button";
 import { usePopup } from "../contexts/PopupContext";
 import { ConfirmPopup } from "../components/Popup";
 import { usePhase } from "../contexts/PhaseContext";
+import { globalData } from "../contexts/DataContext";
 
 enum State {
   STARTUP = 0,
@@ -30,7 +31,7 @@ enum State {
  * @returns {Element}
  */
 export default function PhaseThreePage() {
-  const location = useLocation();
+  const { frame, quantity } = globalData();
   const navigate = useNavigate();
   const phase = usePhase();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -38,10 +39,15 @@ export default function PhaseThreePage() {
   const [state, setState] = useState<State>(State.STARTUP);
   const [token, setToken] = useState<string>("");
   const [error, setError] = useState<string>("");
-  const frame: Frame = location.state;
   useScript("https://app.sandbox.midtrans.com/snap/snap.js", {
     "data-client-key": BoothManager.Booth.clientKey,
   });
+
+  if (!frame || !quantity) {
+    setError("No Frame is selected for payment");
+    setState(State.ERROR);
+  }
+
   const isHandlingPayment = () => {
     if (
       searchParams.get("order_id") &&
@@ -73,7 +79,7 @@ export default function PhaseThreePage() {
   useEffect(() => {
     window.span?.show();
     const pay = async () => {
-      await PaymentService.pay(frame.id)
+      await PaymentService.pay(frame?.id as string, quantity)
         .then((token) => {
           setToken(token as string);
           setState(State.RUNNING);
@@ -91,8 +97,7 @@ export default function PhaseThreePage() {
 
     // Handles when payment token exist and valid
     if (state === State.RUNNING) {
-      window.snap.embed(token, {
-        embedId: "snap-container",
+      window.snap.pay(token, {
         onSuccess: function (result: PaymentCallback) {
           LoggerService.info(
             `Payment has been resolved ${result.transaction_id}`,
@@ -149,7 +154,10 @@ export default function PhaseThreePage() {
     return (
       <>
         <Page className="flex flex-col justify-center items-center p-[8rem]">
-          <div className="border-2 border-outline" id="snap-container"></div>
+          <div
+            className="border-2 border-outline w-full h-full"
+            id="snap-container"
+          ></div>
         </Page>
       </>
     );

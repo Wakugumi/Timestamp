@@ -25,8 +25,8 @@ export default function Select<T extends string | number>({
   label = "Select",
 }: SelectProps<T>) {
   const [selected, setSelected] = useState<{ value: T; label: T }>({
-    value: value,
-    label: value,
+    value: options[0]?.value,
+    label: options[0]?.label,
   });
   const { showPopup, hidePopup } = usePopup();
 
@@ -44,7 +44,7 @@ export default function Select<T extends string | number>({
                 setSelected(item);
                 hidePopup();
               }}
-              className={`py-12 px-24 bg-surface-container-highest rounded shadow 
+              className={`py-12 px-24 bg-surface-container-lowest rounded shadow-xl border border-outline
 text-on-primary-container items-center text-4xl 
 ${item.value === selected.value ? "!bg-primary-container !text-on-primary-container !shadow-none border-8 border-primary" : ""}`}
             >

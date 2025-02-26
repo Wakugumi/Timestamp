@@ -1,7 +1,8 @@
-import { ReactNode } from "react";
+import { CSSProperties, ReactNode } from "react";
 interface PageProps {
   children: ReactNode;
   className?: string;
+  style?: CSSProperties;
 }
 
 /**
@@ -9,8 +10,12 @@ interface PageProps {
  * @params {string} className - apply HTML element class attribute
  * @returns {React.FC}
  */
-export default function Page({ children, className = "" }: PageProps) {
-  const styles = `min-h-lvh max-h-lvh flex text-on-surface p-8 ${className}`;
+export default function Page({ children, className = "", style }: PageProps) {
+  const styles = `min-h-lvh max-h-lvh flex text-on-surface p-[8rem] ${className}`;
 
-  return <div className={styles}>{children}</div>;
+  return (
+    <div className={styles} style={style}>
+      {children}
+    </div>
+  );
 }

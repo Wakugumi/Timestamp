@@ -1,10 +1,18 @@
+import { CSSProperties } from "react";
+
 interface IconProps {
   className?: string;
   type: string;
   size?: string;
+  style?: CSSProperties;
 }
 
-export default function Icon({ type, className, size = "32px" }: IconProps) {
+export default function Icon({
+  type,
+  className,
+  size = "32px",
+  style,
+}: IconProps) {
   const icons: { [key: string]: JSX.Element } = {
     launch: (
       <svg
@@ -92,19 +100,34 @@ export default function Icon({ type, className, size = "32px" }: IconProps) {
         <path d="M560-240 320-480l240-240 56 56-184 184 184 184-56 56Z" />
       </svg>
     ),
+    error: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        height={size}
+        viewBox="0 -960 960 960"
+        width={size}
+        style={style}
+        className={`fill-current ${className}`}
+      >
+        <path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240Zm40 360q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z" />
+      </svg>
+    ),
   };
 
   if (icons[type] == undefined) {
     return (
       <>
-        <span>{type}</span>
+        <span className={className}>{type}</span>
       </>
     );
   }
 
   return (
     <>
-      <span className={`inline-block align-text-bottom ${className}`}>
+      <span
+        className={`inline-block align-text-bottom ${className}`}
+        style={style}
+      >
         {icons[type]}
       </span>
     </>

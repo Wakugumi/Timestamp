@@ -1,3 +1,4 @@
+import { NetworkError } from "../helpers/AppError";
 import Frame from "../interfaces/Frame";
 import Theme from "../interfaces/Theme";
 import { colorGenerator, applyColors } from "../utilities/colorGenerator";
@@ -28,15 +29,21 @@ export default class ThemeManager {
   /**
    * @todo Better check the performance using this to filter values
    *
-   * Gets theme's names from a set for Frame. Filters out the IDs from the Frame[] with all the Theme available at backend
-   * @param {Frame[]} frames
-   * @returns {Promise<string[]>} List of unique theme names from given Frames
+   * Gets theme's names from a set for Frame.
+   * @returns {Promise<Theme[]>} List of unique theme from given Frames
    */
-  public static async getThemeNameFromFrames(frames: Frame[]) {
-    const themes: Theme[] = await APIService.get("themes");
-    const ids = new Set(frames.map((frame) => frame.themeId));
-
-    console.log(ids);
-    return themes.filter((theme) => ids.has(theme.id));
+  public static async getThemeNames() {
+    return await APIService.get<Theme[]>("frames/theme", {
+      headers: {
+        Token: BoothManager.boothId,
+      },
+    })
+      .then((response) => {
+        console.log("[ThemeManager]", response);
+        return response;
+      })
+      .catch((error) => {
+        throw new NetworkError(error);
+      });
   }
 }

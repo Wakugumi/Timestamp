@@ -7,22 +7,24 @@ enum StatusCode {
   ERROR = 3,
 }
 
+export interface IIpcResponse<T> {
+  status: StatusCode;
+  message: string;
+  data?: T | null;
+  headers?: object;
+}
+
 export default class IPCResponse<T> {
   status: StatusCode;
   message: string;
   data?: T | null;
   headers?: object;
 
-  constructor(
-    status: StatusCode,
-    message: string,
-    data: T | null = null,
-    headers: object = {},
-  ) {
-    this.status = status;
-    this.message = message;
-    this.data = data;
-    this.headers = headers;
+  constructor(data: IIpcResponse<T>) {
+    this.status = data.status;
+    this.message = data.message;
+    this.data = data.data;
+    this.headers = data.headers;
   }
 
   get STATUS() {

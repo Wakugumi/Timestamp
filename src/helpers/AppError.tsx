@@ -23,11 +23,8 @@ export class AppError extends Error {
     this.technicalMessage = technicalMessage;
   }
 
-  valueOf() {
-    return this.userMessage;
-  }
-  toString() {
-    return this.userMessage;
+  override toString() {
+    return this.technicalMessage as string;
   }
 }
 

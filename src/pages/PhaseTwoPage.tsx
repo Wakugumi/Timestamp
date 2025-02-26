@@ -9,8 +9,6 @@ import React, {
   MouseEventHandler,
 } from "react";
 import "./PhaseTwoPage.css";
-import { usePopup } from "../contexts/PopupContext.tsx";
-import { ConfirmPopup, GenericPopup } from "../components/Popup.tsx";
 import { useNavigate } from "react-router";
 import Icon from "../components/Icon.tsx";
 import formatPrice from "../utilities/formatPrice.tsx";
@@ -27,13 +25,13 @@ import imageAspectRatio from "../utilities/imageAspectRatio.tsx";
 import LoadingAnimation from "../components/LoadingAnimation.tsx";
 import Page from "../components/Page.tsx";
 import ExitButton from "../components/ExitButton.tsx";
-import SelectPills from "../components/inputs/SelectPills.tsx";
-import Dropdown from "../components/Dropdown.tsx";
 import LoggerService from "../services/LoggerService.tsx";
 import Select from "../components/Select.tsx";
 import ThemeManager from "../services/ThemeManager.tsx";
 import Theme from "../interfaces/Theme.tsx";
 import Selector from "../components/Selector.tsx";
+import Radio from "../components/inputs/Radio.tsx";
+import { globalData } from "../contexts/DataContext.tsx";
 enum State {
   LOADING = 0,
   RUNNING = 1,
@@ -46,6 +44,7 @@ interface ConfirmPopupProps {
   frame: Frame;
   onCancel: () => void;
   onConfirm: () => void;
+  onQuantity: (qty: number) => void;
 }
 
 /**
@@ -54,12 +53,36 @@ interface ConfirmPopupProps {
  * @params {void} onCancel - the callback when user click cancel button
  * @params {void} onConfirm - the callback when user confirms
  */
-function ConfirmPrompt({ frame, onCancel, onConfirm }: ConfirmPopupProps) {
+function ConfirmPrompt({
+  frame,
+  onCancel,
+  onConfirm,
+  onQuantity,
+}: ConfirmPopupProps) {
+  if (!frame) onCancel();
+
+  const [quantity, setQuantity] = useState<number>(frame.split ? 2 : 1);
+  const [options, setOptions] = useState<number[]>([]);
+
+  useEffect(() => {
+    if (frame.split) {
+      setQuantity(2);
+      setOptions([2, 4, 6, 8, 10]);
+    } else {
+      setQuantity(1);
+      setOptions([1, 2, 3, 4, 5]);
+    }
+  }, []);
+
+  useEffect(() => {
+    onQuantity(quantity);
+  }, [quantity]);
+
   return (
     <>
-      <div
-        className="flex flex-row justify-start items-start
-      bg-surface border-2 border-outline p-12 gap-12 min-h-full items-stretch"
+      <Page
+        className="flex flex-row justify-center
+      bg-surface border-2 border-outline gap-12 min-h-full items-stretch"
       >
         <div className="flex-1 flex justify-center items-center">
           <LazyImage
@@ -68,40 +91,41 @@ function ConfirmPrompt({ frame, onCancel, onConfirm }: ConfirmPopupProps) {
           />
         </div>
 
+        {/** Right Panel */}
         <div className="flex-1 flex flex-col justify-between">
           <span className="text-6xl">{frame.name}</span>
 
           <div className="flex flex-wrap gap-4 text-2xl">
-            <div
-              className="flex flex-row justify-center items-center gap-4
-            px-4 py-2 border border-outline rounded-full bg-surface-container-low text-on-surface"
-            >
-              <Icon type="print" size="3rem"></Icon>
-              <span>
-                {frame.split ? "2 piece of paper" : "1 piece of paper"}
-              </span>
-            </div>
-
-            <div
-              className="flex flex-row justify-center items-center gap-4
-            px-4 py-2 border border-outline rounded-full bg-surface-container-low text-on-surface"
-            >
+            <div className="flex flex-row justify-center items-center gap-4 text-on-surface">
               <Icon type="photo" size="3rem"></Icon>
               <span>{frame.count} photos in frame</span>
             </div>
 
-            <div
-              className="flex flex-row justify-center items-center gap-4
-            px-4 py-2 border border-outline rounded-full bg-surface-container-low text-on-surface"
-            >
+            <div className="flex flex-row justify-center items-center gap-4 text-on-surface">
               <Icon type="print" size="3rem"></Icon>
               <span>{frame.count * 2}x capture</span>
             </div>
           </div>
 
+          <div className="block bg-surface-container-lowest shadow-xl rounded-xl p-4">
+            <span className="block text-xl mb-4">
+              Select how many prints you want?
+            </span>
+            <Radio
+              options={options.map((value) => ({
+                value: value,
+                label: `${value} ${value > 1 ? `prints` : `print`}`,
+              }))}
+              onChange={(value) => setQuantity(value)}
+              value={quantity}
+            />
+          </div>
+
           <div className="flex w-full flex-row justify-between items-center text-4xl">
             <div>Subtotal</div>
-            <div className="font-bold">{formatPrice(frame.price)}</div>
+            <div className="font-bold">
+              {formatPrice(frame.price * quantity)}
+            </div>
           </div>
 
           <div className="flex w-full flex-row gap-4">
@@ -124,7 +148,7 @@ function ConfirmPrompt({ frame, onCancel, onConfirm }: ConfirmPopupProps) {
             </Button>
           </div>
         </div>
-      </div>
+      </Page>
     </>
   );
 }
@@ -140,7 +164,6 @@ export default function PhaseTwoPage() {
   const [isIdle, setIsIdle] = useState<boolean>(true);
   const idleMessage = useIdleTimer(300000, isIdle);
   const errorIdle = useIdleTimer(10000, state === State.ERROR);
-  const { showPopup, hidePopup } = usePopup();
   const [rawFrames, setRawFrames] = useState<Frame[]>([]);
   const [frames, setFrames] = useState<Frame[]>([]);
   const [filters, setFilters] = useState<FrameFilters>({
@@ -151,6 +174,7 @@ export default function PhaseTwoPage() {
   const [filterCount, setFilterCount] = useState<number>(-1);
   const [error, setError] = useState<AppError | null>(null);
   const [selected, setSelected] = useState<Frame | null>(null);
+  const { setFrame, setQuantity } = globalData();
 
   const framesWithRatio = async (frames: Frame[]) => {
     return await Promise.all(
@@ -163,7 +187,6 @@ export default function PhaseTwoPage() {
   const startup = async () => {
     try {
       await FrameService.getFrames().then(async (value) => {
-        console.log("frameservice returns", value);
         setRawFrames(value as Frame[]);
         setFrames(value as Frame[]);
         setFilters({
@@ -171,10 +194,7 @@ export default function PhaseTwoPage() {
           theme: [],
         });
 
-        const themeName = await ThemeManager.getThemeNameFromFrames(
-          value as Frame[],
-        );
-        console.log(themeName);
+        const themeName = await ThemeManager.getThemeNames();
 
         setFilters((prev) => ({
           ...prev,
@@ -195,25 +215,20 @@ export default function PhaseTwoPage() {
   /** Handles filter for number of pictures */
   useEffect(() => {
     if (state !== State.RUNNING && rawFrames.length <= 0) return;
-    if (filterCount < 0) setFrames(rawFrames);
-    else setFrames(rawFrames.filter((frame) => frame.count === filterCount));
-  }, [filterCount]);
+    if (filterCount < 0)
+      setFrames(rawFrames.filter((frame) => frame.themeId === filterTheme));
+    else
+      setFrames(
+        rawFrames.filter(
+          (frame) =>
+            frame.count === filterCount && frame.themeId === filterTheme,
+        ),
+      );
+  }, [filterCount, filterTheme, rawFrames]);
 
-  const handleFilter = () => {};
-  const handleExit = () => {
-    showPopup(
-      <ConfirmPopup
-        message="Are you sure to cancel?"
-        onReject={() => {
-          hidePopup();
-        }}
-        onConfirm={() => {
-          navigate("/");
-          hidePopup();
-        }}
-      ></ConfirmPopup>,
-    );
-  };
+  useEffect(() => {
+    setSelected(frames[0]);
+  }, [frames]);
 
   const handleSelect = () => {
     setState(State.SELECT);
@@ -221,6 +236,7 @@ export default function PhaseTwoPage() {
 
   const handleConfirm = () => {
     setState(State.LOADING);
+    setFrame(selected as Frame);
     phase.setCurrentPhase(3);
     navigate("/phase3", { state: selected });
   };
@@ -234,6 +250,7 @@ export default function PhaseTwoPage() {
   if (state === State.SELECT)
     return (
       <ConfirmPrompt
+        onQuantity={(qty) => setQuantity(qty)}
         frame={selected as Frame}
         onCancel={() => {
           setState(State.RUNNING);
@@ -273,7 +290,11 @@ export default function PhaseTwoPage() {
 
         <div className="flex-1 flex flex-col justify-center">
           <ExitButton />
-          <Selector onSelect={(index) => setSelected(frames[index])}>
+          <Selector
+            onSelect={(index) => {
+              setSelected(frames[index]);
+            }}
+          >
             {frames.map((value, index) => (
               <div className="" key={index}>
                 <LazyImage
