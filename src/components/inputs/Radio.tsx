@@ -1,11 +1,10 @@
-import { Children, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
-type RadioProps = {
-  options: { value: any; label: any }[];
+type RadioProps<T extends string | number> = {
+  options: { value: T; label: T }[];
   className?: string;
-  onChange: (value: any) => void;
-  value: any;
-  label?: string;
+  onChange: (value: T) => void;
+  value: T;
 };
 
 export default function Radio<T extends string | number>({
@@ -13,8 +12,7 @@ export default function Radio<T extends string | number>({
   className = "",
   onChange,
   value,
-  label = "Radio",
-}: RadioProps) {
+}: RadioProps<T>) {
   const [selected, setSelected] = useState<{ value: T; label: T }>({
     value: value,
     label: value,

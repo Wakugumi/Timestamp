@@ -2,16 +2,15 @@ import axios, { AxiosError } from "axios";
 import Booth from "../interfaces/Booth";
 import Frame from "../interfaces/Frame";
 import Theme from "../interfaces/Theme";
-import { Filter } from "../utilities/ImageFilter";
+import { FilterPreset } from "../interfaces/ImageFilter.tsx";
 import ThemeManager from "./ThemeManager";
-import { Network } from "inspector";
 import { NetworkError } from "../helpers/AppError";
 
 type BoothInitializeResponse = {
   booth: Booth;
   theme: Theme;
   frames: Frame[];
-  filters: Filter[];
+  filters: FilterPreset[];
 };
 
 const api = axios.create({

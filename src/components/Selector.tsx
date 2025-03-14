@@ -15,7 +15,7 @@ interface ArrowProps {
   styles?: string;
   onClick?: () => void;
 }
-function NextArrow({ className = "", styles = "", onClick }: ArrowProps) {
+function NextArrow({ className = "", onClick }: ArrowProps) {
   return (
     <div className={`block ${className}`} onClick={onClick}>
       <Icon type="right" size="4rem"></Icon>
@@ -23,7 +23,7 @@ function NextArrow({ className = "", styles = "", onClick }: ArrowProps) {
   );
 }
 
-function PrevArrow({ className = "", styles = "", onClick }: ArrowProps) {
+function PrevArrow({ className = "", onClick }: ArrowProps) {
   return (
     <div className={`block ${className}`} onClick={onClick}>
       <Icon type="left" size="4rem"></Icon>
@@ -47,7 +47,7 @@ export default function Selector({ children, onSelect }: SelectorProps) {
     if (Children.count(children) === 1) setIndex(0);
   }, [children]);
 
-  const [settings, setSettings] = useState<Record<string, any>>({
+  const settings = {
     nextArrow: <NextArrow />,
     prevArrow: <PrevArrow />,
     className: "center",
@@ -55,9 +55,9 @@ export default function Selector({ children, onSelect }: SelectorProps) {
     dots: true,
     dotsClass: "slider-dots",
     slidesToShow: 3,
-    beforeChange: (current: number, next: number) => setIndex(next),
+    beforeChange: (_: number, next: number) => setIndex(next),
     speed: 200,
-  });
+  };
 
   if (Children.count(children) <= 0)
     return (
@@ -72,7 +72,7 @@ export default function Selector({ children, onSelect }: SelectorProps) {
       <>
         <div
           className="flex flex-row justify-evenly
-          bg-surface-container-lowest rounded-xl shadow p-12"
+          "
         >
           {Children.map(children, (child, i) =>
             cloneElement(child as ReactElement, {

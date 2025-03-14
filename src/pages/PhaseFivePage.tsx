@@ -8,6 +8,7 @@ import { usePhase } from "../contexts/PhaseContext";
 import { useNavigate } from "react-router";
 import ErrorPage from "../components/ErrorPage";
 import Page from "../components/Page";
+import { globalData } from "../contexts/DataContext";
 
 enum State {
   RUNNING,
@@ -17,8 +18,9 @@ enum State {
 }
 
 export default function PhaseFivePage({}) {
-  const DURATION = 20;
+  const { frame } = globalData();
   const INTERVAL = 5;
+  const DURATION = INTERVAL * (frame?.count! * 2);
   let STAGES = [];
   for (let i = 1; i <= DURATION / INTERVAL; i++) STAGES.push(i);
 
@@ -32,10 +34,7 @@ export default function PhaseFivePage({}) {
   const [timer, setTimer] = useState<number>(INTERVAL);
   const [stage, setStage] = useState<number>(1);
   const [pause, setPause] = useState<boolean>(false);
-  const cameraPreview = useMemo(
-    () => <CameraPreview pause={pause} width="1280" height="720" />,
-    [pause],
-  );
+  const cameraPreview = useMemo(() => <CameraPreview pause={pause} />, [pause]);
 
   /**
    * Temporary function to simulate backend calls
@@ -53,13 +52,13 @@ export default function PhaseFivePage({}) {
    */
   const _capture = async (): Promise<void> => {
     setPause(true);
+    await setTimeout(() => {}, 1000); // This is VERY IMPORTANT to let camera stop stream
     try {
       canvasRef.current?.classList.add("capturing");
       await BackendService.capture();
     } catch (error) {
-      console.error("error capturing", error);
       setState(State.ERROR);
-      setErrorState(error);
+      setErrorState(error as string);
       throw error;
     } finally {
       canvasRef.current?.classList.remove("capturing");
@@ -138,7 +137,8 @@ export default function PhaseFivePage({}) {
           </div>
 
           {(state === State.RUNNING || state === State.PROCESSING) && (
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col items-center justify-center gap-4">
+              {cameraPreview}
               <div className="flex items-center justify-evenly">
                 {STAGES.map((index) => (
                   <div

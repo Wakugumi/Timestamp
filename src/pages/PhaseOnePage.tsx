@@ -64,20 +64,26 @@ export default function PhaseOnePage() {
 
   /** Video stream handler */
   const _videoStream = () => {
+    console.log("Video stream called");
     const newSocket = new WebSocket("ws://localhost:8080");
     setSocket(newSocket);
 
     newSocket.binaryType = "blob";
 
+    let imageBuffer = [];
     window.electron?.onStream((chunk) => {
       if (!canvasRef.current) return;
       const canvas = canvasRef.current.getContext("2d", {
         willReadFrequently: true,
       });
-      const blob = new Blob([chunk]);
-      const img = new Image();
-      img.src = URL.createObjectURL(blob);
 
+      imageBuffer.push(chunk);
+
+      const blob = new Blob(imageBuffer, { type: "image/jpeg" });
+
+      const url = URL.createObjectURL(blob);
+
+      const img = new Image();
       img.onload = function render() {
         canvas?.clearRect(
           0,
@@ -92,8 +98,11 @@ export default function PhaseOnePage() {
           canvasRef.current?.width as number,
           canvasRef.current?.height as number,
         );
-        URL.revokeObjectURL(img.src);
+        URL.revokeObjectURL(url);
       };
+      img.src = url;
+      imageBuffer = [];
+
       img.onerror = function (err) {
         console.error("Failed to load stream:", err);
       };
@@ -135,8 +144,8 @@ export default function PhaseOnePage() {
 
   const handleProceed = () => {
     _cleanSocket();
-    phaseContext.setCurrentPhase(5);
-    navigate("/phase5");
+    phaseContext.setCurrentPhase(2);
+    navigate("/phase2");
   };
 
   if (state !== PageState.RUNNING) {

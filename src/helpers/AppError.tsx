@@ -1,5 +1,4 @@
 export class AppError extends Error {
-  public name: string;
   public code: string;
   public userMessage: string;
   public technicalMessage: string;
@@ -17,14 +16,23 @@ export class AppError extends Error {
     userMessage: string,
   ) {
     super(technicalMessage);
+
+    if (Error.captureStackTrace) Error.captureStackTrace(this, AppError);
+
     this.name = name;
     this.code = code;
     this.userMessage = userMessage;
     this.technicalMessage = technicalMessage;
+
+    Object.setPrototypeOf(this, AppError.prototype);
   }
 
-  override toString() {
-    return this.technicalMessage as string;
+  toString() {
+    return this.technicalMessage;
+  }
+
+  valueOf() {
+    return this.technicalMessage;
   }
 }
 
@@ -34,6 +42,7 @@ export class NetworkError extends AppError {
     userMessage: string = "We're very sorry, the network seems to be out of order",
   ) {
     super("NetworkError", "NETWORK_ERROR", technicalMessage, userMessage);
+    Object.setPrototypeOf(this, NetworkError.prototype);
   }
 }
 
@@ -43,6 +52,7 @@ export class DeviceError extends AppError {
     userMessage: string = "We're very sorry, our device seems to be out of order",
   ) {
     super("DeviceError", "DEVICE_ERROR", technicalMessage, userMessage);
+    Object.setPrototypeOf(this, DeviceError.prototype);
   }
 }
 
@@ -52,6 +62,7 @@ export class FileSystemError extends AppError {
     userMessage: string = "We're very sorry, our program seems to be trouble running",
   ) {
     super("FileSystemError", "FILESYSTEM_ERROR", technicalMessage, userMessage);
+    Object.setPrototypeOf(this, FileSystemError.prototype);
   }
 }
 
@@ -61,6 +72,7 @@ export class ElectronError extends AppError {
     userMessage: string = "We're very sorry, the app seems not working",
   ) {
     super("ElectronError", "ELECTRON_ERROR", technicalMessage, userMessage);
+    Object.setPrototypeOf(this, ElectronError.prototype);
   }
 }
 

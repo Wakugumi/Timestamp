@@ -13,12 +13,11 @@ import { Popup } from "./components/Popup";
 import BoothManager from "./services/BoothManager";
 import LoggerService from "./services/LoggerService";
 import PhaseThreePage from "./pages/PhaseThreePage";
-import TestPage from "./pages/TestPage";
 import PhaseFourPage from "./pages/PhaseFourPage";
 import PhaseFivePage from "./pages/PhaseFivePage";
-import { AppError } from "./helpers/AppError.tsx";
-import ErrorBoundary from "./components/ErrorBoundary.tsx";
 import PhaseSixPage from "./pages/PhaseSixPage.tsx";
+import PhaseSevenPage from "./pages/PhaseSevenPage.tsx";
+import PhaseEightPage from "./pages/PhaseEightPage.tsx";
 
 enum State {
   LOADING = 0,
@@ -81,11 +80,12 @@ function App() {
                         </ProtectedRoute>
                       }
                     />
-                    <Route path="/test" element={<TestPage />} />
                     <Route path="/phase3" element={<PhaseThreePage />} />
                     <Route path="/phase4" element={<PhaseFourPage />} />
                     <Route path="/phase5" element={<PhaseFivePage />} />
                     <Route path="/phase6" element={<PhaseSixPage />} />
+                    <Route path="/phase7" element={<PhaseSevenPage />} />
+                    <Route path="/phase8" element={<PhaseEightPage />} />
                   </Routes>
                 </BrowserRouter>
               </PopupProvider>

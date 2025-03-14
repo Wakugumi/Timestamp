@@ -22,10 +22,10 @@ export const ConfirmPopup: React.FC<ConfirmPopupProps> = ({
       <div className="popup-content flex flex-col items-center px-[8rem] gap-[4rem]">
         <p className="text-4xl font-medium text-on-surface">{message}</p>
         <div className="mt-4 flex justify-center space-x-4">
-          <Button className="px-8" variant="fill" onClick={onReject}>
+          <Button className="px-16" variant="fill" onClick={onReject}>
             {rejectLabel}
           </Button>
-          <Button className="px-8" type="danger" onClick={onConfirm}>
+          <Button className="px-16" type="danger" onClick={onConfirm}>
             {confirmLabel}
           </Button>
         </div>

@@ -1,6 +1,5 @@
 import { Component, ErrorInfo, ReactNode } from "react";
 import LoggerService from "../services/LoggerService";
-import ErrorPage from "./ErrorPage";
 import Page from "./Page";
 import Icon from "./Icon";
 
@@ -18,7 +17,7 @@ class ErrorBoundary extends Component<
     super(props);
     this.state = { hasError: false };
   }
-  static getDerivedStateFromError(error: Error) {
+  static getDerivedStateFromError() {
     return { hasError: true };
   }
 

@@ -36,27 +36,22 @@ class APIService {
           config.headers["Authorization"] = `Bearer ${token}`;
         }
         config.headers["Token"] = import.meta.env.VITE_BOOTH_TOKEN;
-        console.info(`[Request] ${config.method?.toUpperCase()} ${config.url}`);
         return config;
       },
       (error) => {
-        console.error("[Request Error]", error);
         return Promise.reject(error);
       },
     );
 
     this.axiosInstance.interceptors.response.use(
       (response: AxiosResponse) => {
-        console.info(`[Response] ${response.status} ${response.config.url}`);
         if (response.data) {
           response.data = response.data.data;
         }
         return response;
       },
       (error) => {
-        console.error("[Response Error]", error);
         if (error.response?.status === 401) {
-          console.warn("Unauthorized, redirecting to login...");
           window.location.href = "/login";
         }
         return Promise.reject(error);

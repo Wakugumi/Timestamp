@@ -92,10 +92,10 @@ function ConfirmPrompt({
         </div>
 
         {/** Right Panel */}
-        <div className="flex-1 flex flex-col justify-between">
-          <span className="text-6xl">{frame.name}</span>
+        <div className="flex-1 flex flex-col gap-24 justify-center">
+          <span className="text-6xl font-bold">{frame.name}</span>
 
-          <div className="flex flex-wrap gap-4 text-2xl">
+          <div className="flex flex-wrap gap-12 text-4xl">
             <div className="flex flex-row justify-center items-center gap-4 text-on-surface">
               <Icon type="photo" size="3rem"></Icon>
               <span>{frame.count} photos in frame</span>
@@ -107,8 +107,8 @@ function ConfirmPrompt({
             </div>
           </div>
 
-          <div className="block bg-surface-container-lowest shadow-xl rounded-xl p-4">
-            <span className="block text-xl mb-4">
+          <div className="block bg-surface-container-lowest shadow-xl rounded-xl p-12">
+            <span className="block text-2xl mb-8">
               Select how many prints you want?
             </span>
             <Radio
@@ -172,9 +172,9 @@ export default function PhaseTwoPage() {
   });
   const [filterTheme, setFilterTheme] = useState<string>("");
   const [filterCount, setFilterCount] = useState<number>(-1);
-  const [error, setError] = useState<AppError | null>(null);
+  const [error, setError] = useState<Error | null>(null);
   const [selected, setSelected] = useState<Frame | null>(null);
-  const { setFrame, setQuantity } = globalData();
+  const { setFrame, setQuantity, originalWidth, originalHeight } = globalData();
 
   const framesWithRatio = async (frames: Frame[]) => {
     return await Promise.all(
@@ -234,11 +234,23 @@ export default function PhaseTwoPage() {
     setState(State.SELECT);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     setState(State.LOADING);
+
     setFrame(selected as Frame);
-    phase.setCurrentPhase(3);
-    navigate("/phase3", { state: selected });
+    const img = new Image();
+    img.src = selected?.url!;
+    img.onload = () => {
+      originalHeight.current = img.naturalHeight;
+      originalWidth.current = img.naturalWidth;
+    };
+    img.onerror = (event, src, line, col, error) => {
+      setState(State.ERROR);
+      setError(error!);
+    };
+
+    phase.setCurrentPhase(6);
+    navigate("/phase6", { state: selected });
   };
   if (state === State.LOADING)
     return (
@@ -307,16 +319,16 @@ export default function PhaseTwoPage() {
               </div>
             ))}
           </Selector>
-          <div className="flex flex-row justify-end items-center">
-            <Button
-              type="primary"
-              variant="fill"
-              onClick={handleSelect}
-              className="text-4xl px-12"
-            >
-              Select
-            </Button>
-          </div>
+        </div>
+        <div className="flex flex-row justify-end items-center">
+          <Button
+            type="primary"
+            variant="fill"
+            onClick={handleSelect}
+            className="text-4xl px-12"
+          >
+            Select
+          </Button>
         </div>
       </Page>
     );
@@ -325,7 +337,14 @@ export default function PhaseTwoPage() {
     return (
       <>
         <IdleMessage message={errorIdle as string}></IdleMessage>
-        <ErrorPage message={error?.userMessage as string} code={error?.code} />
+        <ErrorPage
+          message={
+            error instanceof AppError
+              ? (error?.userMessage as string)
+              : error?.message!
+          }
+          code={error instanceof AppError ? error?.code! : error?.name!}
+        />
       </>
     );
 }

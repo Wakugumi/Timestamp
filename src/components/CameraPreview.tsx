@@ -1,4 +1,4 @@
-import { Ref, RefAttributes, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 
 interface CameraPreviewProps {
   width?: string;
@@ -6,7 +6,7 @@ interface CameraPreviewProps {
   pause?: boolean;
 }
 const CameraPreview = ({
-  width = "1640",
+  width = "1920",
   height = "1080",
   pause = false,
 }: CameraPreviewProps) => {
@@ -14,21 +14,17 @@ const CameraPreview = ({
   const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    console.log("CameraPreview mounts");
-  }, []);
-  useEffect(() => {
-    if (wsRef.current) return;
-    _videoStream();
+    console.log("[CameraPreview] Mounts");
+
     return () => {
-      if (wsRef.current) {
-        wsRef.current.close();
-        wsRef.current = null;
-      }
+      console.log("[CameraPreview] Unmounts");
     };
-  }, [wsRef.current]);
+  }, []);
 
   useEffect(() => {
-    if (pause) {
+    console.log("[CameraPreview] Pause: ", pause);
+
+    if (pause && wsRef.current) {
       wsRef.current?.close();
       const ctx = canvasRef.current?.getContext("2d");
       ctx?.clearRect(
@@ -37,43 +33,56 @@ const CameraPreview = ({
         canvasRef.current?.width as number,
         canvasRef.current?.height as number,
       );
-    } else if (!pause && wsRef.current) _videoStream();
+    } else if (!pause) _videoStream();
+
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+    };
   }, [pause]);
 
   /** Video stream hander */
   const _videoStream = () => {
+    console.log("Video stream called");
     if (!canvasRef.current) return;
 
     wsRef.current = new WebSocket("ws://localhost:8080");
+    console.log("[CameraPreview] Websocket opens");
     wsRef.current.binaryType = "blob";
+
+    let imageBuffer: Uint8Array<ArrayBufferLike>[] = [];
 
     window.electron?.onStream((chunk: Uint8Array) => {
       const canvas = canvasRef.current?.getContext("2d", {
         willReadFrequently: true,
       });
-      const render = () => {
-        const blob = new Blob([chunk.subarray(0, 8192)]);
-        const img = new Image();
-        img.src = URL.createObjectURL(blob);
 
-        img.onload = function render() {
-          canvas?.clearRect(
-            0,
-            0,
-            canvasRef.current?.width as number,
-            canvasRef.current?.height as number,
-          );
-          canvas?.drawImage(
-            img,
-            0,
-            0,
-            canvasRef.current?.width as number,
-            canvasRef.current?.height as number,
-          );
-          URL.revokeObjectURL(img.src);
-        };
+      imageBuffer.push(chunk);
+
+      const blob = new Blob(imageBuffer, { type: "image/jpeg" });
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+
+      img.onload = function render() {
+        canvas?.clearRect(
+          0,
+          0,
+          canvasRef.current?.width as number,
+          canvasRef.current?.height as number,
+        );
+        canvas?.drawImage(
+          img,
+          0,
+          0,
+          canvasRef.current?.width as number,
+          canvasRef.current?.height as number,
+        );
+        URL.revokeObjectURL(img.src);
       };
-      requestAnimationFrame(render);
+      img.src = url;
+      imageBuffer = [];
     });
     wsRef.current.onclose = () => console.log("socket disconnected");
   };

@@ -36,7 +36,7 @@ export default function Select<T extends string | number>({
         <div className="flex items-center justify-center my-12">
           <span className="text-4xl">{label}</span>
         </div>
-        <div className="flex flex-row justify-evenly">
+        <div className="flex flex-row gap-4 justify-evenly">
           {options.map((item, index) => (
             <button
               key={index}

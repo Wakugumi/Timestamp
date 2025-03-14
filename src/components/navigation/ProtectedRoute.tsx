@@ -1,9 +1,7 @@
-import { Navigate, useNavigationType } from "react-router-dom";
 import { usePhase } from "../../contexts/PhaseContext";
-import React, { useState } from "react";
+import React from "react";
 import LoggerService from "../../services/LoggerService";
 import ErrorPage from "../ErrorPage";
-import useIdleTimer from "../../hooks/useIdleTimer";
 import Button from "../Button";
 import Page from "../Page";
 import { useNavigate } from "react-router";
@@ -12,7 +10,7 @@ const ProtectedRoute: React.FC<{
   phaseNumber: number;
   children: React.ReactNode;
 }> = ({ phaseNumber, children }) => {
-  const { currentPhase, setCurrentPhase } = usePhase();
+  const { currentPhase } = usePhase();
   const navigate = useNavigate();
 
   const handleReturn = () => {

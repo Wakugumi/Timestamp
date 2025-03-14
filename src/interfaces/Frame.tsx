@@ -1,8 +1,8 @@
-type Layout = {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
+export type Layout = {
+  X: number;
+  Y: number;
+  Width: number;
+  Height: number;
 };
 
 export default interface Frame {

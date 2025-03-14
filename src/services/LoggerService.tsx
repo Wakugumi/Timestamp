@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import Page from "../components/Page";
 import APIService from "./APIService";
 import { toUnix } from "../utilities/dateFormatter";
 
@@ -102,12 +101,19 @@ class LoggerService {
   /**
    * Logs an error message.
    *
-   * @param technicalMessage - A detailed message intended for developers.
-   * @param userMessage - An optional user-friendly message for display.
+   * @param {Error} error - Error object or a string description of the error.
+   * @param {string} userMessage? - An optional user-friendly message for display.
    */
-  static error(technicalMessage: string, userMessage?: string) {
-    const errorStack = new Error();
-    LoggerService.log(Level.ERROR, technicalMessage, userMessage);
+  static error(error: Error | string, userMessage?: string) {
+    if (error instanceof Error) {
+      return LoggerService.log(
+        Level.ERROR,
+        (error as Error).message,
+        userMessage,
+        (error as Error).stack,
+      );
+    }
+    return LoggerService.log(Level.ERROR, error, userMessage);
   }
 
   private static _location(): string {

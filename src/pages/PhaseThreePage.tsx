@@ -48,15 +48,6 @@ export default function PhaseThreePage() {
     setState(State.ERROR);
   }
 
-  const isHandlingPayment = () => {
-    if (
-      searchParams.get("order_id") &&
-      searchParams.get("status_code") &&
-      searchParams.get("transaction_status")
-    )
-      return true;
-    else return false;
-  };
   const handleExit = () => {
     showPopup(
       <ConfirmPopup
@@ -77,7 +68,7 @@ export default function PhaseThreePage() {
   };
 
   useEffect(() => {
-    window.span?.show();
+    window.snap?.show();
     const pay = async () => {
       await PaymentService.pay(frame?.id as string, quantity)
         .then((token) => {

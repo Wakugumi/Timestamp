@@ -4,6 +4,7 @@ interface ButtonProps {
   type?: ButtonType;
   variant?: ButtonVariant;
   children: ReactNode;
+  disabled?: boolean;
   onClick?: () => void;
 }
 
@@ -38,13 +39,15 @@ export default function Button({
   type = "primary",
   variant = "outline",
   children,
+  disabled = false,
   onClick,
 }: ButtonProps) {
   return (
     <>
       <button
-        className={`p-4 rounded-full transition-all ${styles[type][variant]} ${className}`}
+        className={`p-8 text-4xl rounded-full transition-all ${styles[type][variant]} ${className} ${disabled ? "border-1 border-surface bg-surface-container-low shadow-inset" : ""}`}
         onClick={onClick}
+        disabled={disabled}
       >
         {children}
       </button>
