@@ -1,17 +1,22 @@
-import { useNavigate } from "react-router";
 import Icon from "../components/Icon";
-import WelcomeBanner from "../components/WelcomeBanner";
 import { usePhase } from "../contexts/PhaseContext";
 import Page from "../components/Page";
+import BoothManager from "../services/BoothManager";
+import { useEffect } from "react";
 
 export default function WelcomePage() {
   const phase = usePhase();
-  const navigate = useNavigate();
+
+  useEffect(() => {
+    const status = BoothManager.checkStatus();
+    if (typeof status === "number") {
+      phase.jumpTo(status);
+    }
+  }, []);
 
   const handleLaunch = () => {
     localStorage.setItem("hasUserInteracted", "true");
-    phase.setCurrentPhase(2);
-    navigate("/phase2");
+    phase.next();
   };
   return (
     <div onClick={() => handleLaunch()}>

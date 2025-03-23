@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState } from "react";
+import { useNavigate } from "react-router";
+import BackendService from "../services/BackendService";
 
 /**
  * @typedef {Object} PhaseContextValue
@@ -7,7 +9,9 @@ import React, { createContext, useContext, useState } from "react";
  */
 interface PhaseContextValue {
   currentPhase: number;
-  setCurrentPhase: (phase: number) => void;
+  jumpTo: (phase: number) => void;
+  next: () => void;
+  restart: () => void;
 }
 
 /** @type {React.Context<PhaseContextValue | undefined>} */
@@ -24,8 +28,27 @@ export const PhaseProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [currentPhase, setCurrentPhase] = useState(1);
+  const navigate = useNavigate();
+
+  const next = () => {
+    setCurrentPhase(currentPhase + 1);
+    BackendService.sessionNext();
+    navigate(`/phase${currentPhase}`);
+  };
+
+  const jumpTo = (phase: number) => {
+    setCurrentPhase(phase);
+    navigate(`/phase${phase}`);
+  };
+
+  const restart = () => {
+    setCurrentPhase(1);
+    BackendService.reset();
+    navigate("/");
+  };
+
   return (
-    <PhaseContext.Provider value={{ currentPhase, setCurrentPhase }}>
+    <PhaseContext.Provider value={{ currentPhase, jumpTo, next, restart }}>
       {children}
     </PhaseContext.Provider>
   );
@@ -39,9 +62,8 @@ export const PhaseProvider: React.FC<{ children: React.ReactNode }> = ({
  */
 export const usePhase = () => {
   const context = useContext(PhaseContext);
-  if (!context) {
-    throw new Error("usePhase must be used within a PhaseProvider");
-  }
+  //if (!context) {
+  // throw new Error("usePhase must be used within a PhaseProvider");
+  //}
   return context;
 };
-

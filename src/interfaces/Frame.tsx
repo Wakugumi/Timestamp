@@ -51,7 +51,7 @@ export default interface Frame {
   split: boolean;
 
   /**
-   * Aspect ratio of the frame
+   * Aspect ratio of the image slot in frame
    * @type {number}
    */
   aspectRatio?: number;

@@ -1,16 +1,24 @@
 import { FabricImage, filters } from "fabric";
-import { FilterPreset } from "../interfaces/ImageFilter";
+import { FilterPreset, ImageFilter } from "../interfaces/ImageFilter";
 import APIService from "./APIService";
 
 export default class ImageFilterService {
   static async getFilters() {
-    return await APIService.get<FilterPreset[]>("filters")
+    const presets: FilterPreset[] = [
+      {
+        name: "None",
+        preset: {},
+      },
+    ];
+    await APIService.get<FilterPreset[]>("filters")
       .then((Response) => {
-        return Response;
+        Response.forEach((x) => presets.push(x));
       })
       .catch((error) => {
         throw error;
       });
+
+    return presets;
   }
 
   static applyFilter(preset: FilterPreset, image: FabricImage) {

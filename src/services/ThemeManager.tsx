@@ -13,12 +13,7 @@ export default class ThemeManager {
    * Extract colors from image given from URL provided by BoothManager in Theme instance
    * @returns {Promise<void>}
    */
-  public static async update(theme: Theme) {
-    const image = new Image();
-    image.crossOrigin = "anonymous";
-    image.src = theme.url;
-    const scheme = await colorGenerator(image);
-    console.log(scheme);
+  public static async update(scheme: Record<string, string>) {
     applyColors(scheme);
   }
 

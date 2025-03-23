@@ -26,9 +26,10 @@ export async function colorGenerator(image: HTMLImageElement) {
     });
 }
 
-export function applyColors(colors: Record<string, number>) {
+export function applyColors(colors: Record<string, string>) {
   const root = document.documentElement;
   Object.entries(colors).forEach(([key, value]) => {
-    root.style.setProperty(`--color-${key}`, argbToHex(value));
+    console.log(key, value);
+    root.style.setProperty(`--color-${key}`, value);
   });
 }

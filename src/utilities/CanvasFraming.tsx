@@ -1,7 +1,5 @@
 import * as Fabric from "fabric";
 import Frame, { Layout } from "../interfaces/Frame";
-import { rejects } from "assert";
-import { resolve } from "path/posix";
 import { FilterPreset } from "../interfaces/ImageFilter";
 import ImageFilterService from "../services/ImageFilterService";
 
@@ -52,11 +50,11 @@ export default class CanvasFraming {
    * @returns {Fabcric.Canvas, number} canvas object and scaling factor
    */
   public async create(): Promise<void> {
-    return await new Promise(async (resolve, reject) => {
+    return await new Promise((resolve, reject) => {
       const img = new Image();
       img.src = this.frame.url as string;
 
-      img.onload = async () => {
+      img.onload = () => {
         try {
           const { naturalWidth, naturalHeight } = img;
 
@@ -66,7 +64,7 @@ export default class CanvasFraming {
             selection: false,
           });
 
-          await Fabric.FabricImage.fromURL(this.frame.url as string)
+          Fabric.FabricImage.fromURL(this.frame.url as string)
             .then((img) => {
               img.set({
                 hasBorders: false,
@@ -207,7 +205,7 @@ export default class CanvasFraming {
         object.toObject().selectable = false;
         o.scalable = false;
       })
-      .then((canvas) => {
+      .then(() => {
         this.fabricCanvas.getObjects().forEach((obj) => {
           obj.set({
             selectable: false,
@@ -219,6 +217,10 @@ export default class CanvasFraming {
       .catch((error) => {
         throw error;
       });
+  }
+
+  public toObject() {
+    return this.fabricCanvas.toDatalessObject([]);
   }
 
   /**
@@ -254,15 +256,16 @@ export default class CanvasFraming {
       width: width,
       height: height,
     });
+
+    canvas.setDimensions({
+      width: width * 2,
+      height: height,
+    });
     canvas.renderAll();
-    canvas.setWidth(width * 2);
 
     canvas.getObjects().forEach(async (obj) => {
       const cloned = await obj.clone([]);
-      cloned.set({
-        left: obj.left + width,
-        top: obj.top,
-      });
+      cloned.setX(obj.left + width);
       canvas.add(cloned);
     });
     canvas.renderAll();
@@ -279,16 +282,12 @@ export default class CanvasFraming {
    * @param {FilterPreset} preset object to apply
    */
   public async applyFilter(preset: FilterPreset) {
-    try {
-      this.fabricCanvas.getObjects().forEach((object, index) => {
-        if (object.name === "frame") return;
-        if (object.isType("image") || object.isType("Image")) {
-          ImageFilterService.applyFilter(preset, object as Fabric.FabricImage);
-        }
-      });
-      this.fabricCanvas.renderAll();
-    } catch (error) {
-      throw error;
-    }
+    this.fabricCanvas.getObjects().forEach((object) => {
+      if (object.name === "frame") return;
+      if (object.isType("image") || object.isType("Image")) {
+        ImageFilterService.applyFilter(preset, object as Fabric.FabricImage);
+      }
+    });
+    this.fabricCanvas.renderAll();
   }
 }

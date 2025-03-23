@@ -56,7 +56,7 @@ export default function ConfirmPhaseSix({
           </div>
         </div>
 
-        <div className="flex flex-col justify-evenly items-stretch gap-8">
+        <div className="flex flex-col justify-evenly items-stretch gap-8 p-8 bg-surface-container rounded outline shadow">
           <h1 className="text-4xl">Are you sure with your choice?</h1>
           <div className="flex flex-row items-stretch gap-8">
             <Button className="flex-1" onClick={() => onCancel()}>

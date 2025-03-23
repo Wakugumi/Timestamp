@@ -5,6 +5,7 @@ import { usePhase } from "../contexts/PhaseContext";
 import BackendService from "../services/BackendService";
 import { AppError } from "../helpers/AppError";
 import useIdleTimer from "../hooks/useIdleTimer";
+import Button from "../components/Button";
 
 enum PageState {
   RUNNING,
@@ -144,8 +145,7 @@ export default function PhaseOnePage() {
 
   const handleProceed = () => {
     _cleanSocket();
-    phaseContext.setCurrentPhase(2);
-    navigate("/phase2");
+    phaseContext.next();
   };
 
   if (state !== PageState.RUNNING) {
@@ -191,15 +191,13 @@ export default function PhaseOnePage() {
 
   return (
     <>
-      <div className="min-h-dvh max-h-dvh bg-surface-container flex flex-col justify-center items-center gap-8 p-8">
+      <div className="min-h-dvh max-h-dvh bg-surface-container flex flex-col justify-center items-center gap-12 p-8">
         <div className="rounded-xl shadow-xl outline outline-primary outline-8 w-fit">
           <canvas ref={canvasRef} width={"1280"} height={"720"} />
         </div>
         <div className="flex gap-4 items-center text-on-surface text-xl">
-          <span>Are we good?</span>
-          <button className="btn" onClick={handleProceed}>
-            Proceed to preparation
-          </button>
+          <span>Can you see yourself?</span>
+          <Button onClick={() => handleProceed()}>Yes, I can see myself</Button>
         </div>
       </div>
     </>

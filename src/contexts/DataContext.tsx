@@ -3,11 +3,13 @@ import React, {
   MutableRefObject,
   ReactNode,
   useContext,
+  useEffect,
   useRef,
   useState,
 } from "react";
 import Frame from "../interfaces/Frame";
 import PaymentCallback from "../interfaces/PaymentCallback";
+import BackendService from "../services/BackendService";
 
 /**
  * @typedef {Object} DataContextValue
@@ -33,6 +35,7 @@ interface DataContextValue<T extends string | number | object> {
   setPictures: (sources: string[]) => void;
   originalWidth: MutableRefObject<number>;
   originalHeight: MutableRefObject<number>;
+  aspectRatio: MutableRefObject<number>;
   reset: () => void;
 }
 
@@ -58,6 +61,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
   const [pictures, setPictures] = useState<string[]>([]);
   const originalHeight = useRef<number>(1000);
   const originalWidth = useRef<number>(1000);
+  const aspectRatio = useRef<number>(1);
 
   /** Reset data state of current cycle */
   const reset = () => {
@@ -70,7 +74,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
     setPictures([]);
     originalHeight.current = 1000;
     originalWidth.current = 1000;
+    aspectRatio.current = 1;
   };
+
+  useEffect(() => {
+    BackendService.sendPayment(payment!);
+    BackendService.sendFrame(frame!);
+    BackendService.sendCanvas(canvas!);
+  }, [payment, frame, canvas]);
 
   return (
     <DataContext.Provider
@@ -91,6 +102,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
         setPictures,
         originalHeight,
         originalWidth,
+        aspectRatio,
         reset,
       }}
     >

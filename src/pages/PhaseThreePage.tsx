@@ -31,7 +31,7 @@ enum State {
  * @returns {Element}
  */
 export default function PhaseThreePage() {
-  const { frame, quantity } = globalData();
+  const { frame, quantity, setPayment } = globalData();
   const navigate = useNavigate();
   const phase = usePhase();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -63,12 +63,10 @@ export default function PhaseThreePage() {
     );
   };
   const handleNext = () => {
-    phase.setCurrentPhase(4);
-    navigate("/phase4");
+    phase.next();
   };
 
   useEffect(() => {
-    window.snap?.show();
     const pay = async () => {
       await PaymentService.pay(frame?.id as string, quantity)
         .then((token) => {
@@ -93,16 +91,16 @@ export default function PhaseThreePage() {
           LoggerService.info(
             `Payment has been resolved ${result.transaction_id}`,
           );
-          window.snap.hide();
+          setPayment(result);
+
           setState(State.SUCCESS);
-          return;
         },
         onPending: function (result: PaymentCallback) {
           LoggerService.info("A pending transaction process is closed by user");
-          window.snap?.hide();
           setState(State.ABORT);
         },
         onError: function (result: PaymentCallback) {
+          console.error("payment error", result);
           setError(result.status_message);
           setState(State.ERROR);
         },
@@ -145,10 +143,7 @@ export default function PhaseThreePage() {
     return (
       <>
         <Page className="flex flex-col justify-center items-center p-[8rem]">
-          <div
-            className="border-2 border-outline w-full h-full"
-            id="snap-container"
-          ></div>
+          <div className="border-2 w-full h-full" id="snap-container"></div>
         </Page>
       </>
     );
@@ -156,18 +151,20 @@ export default function PhaseThreePage() {
   if (state === State.SUCCESS)
     return (
       <>
-        <Page className="flex flex-col justify-center items-center p-[8rem]">
-          <div className="success-checkmark">
-            <div className="check-icon">
-              <span className="icon-line line-tip"></span>
-              <span className="icon-line line-long"></span>
-              <div className="icon-circle"></div>
-              <div className="icon-fix"></div>
+        <Page className="flex flex-col justify-center items-center">
+          <div className="flex flex-col justify-center items-center p-8 outline bg-white shadow rounded">
+            <div className="success-checkmark">
+              <div className="check-icon">
+                <span className="icon-line line-tip"></span>
+                <span className="icon-line line-long"></span>
+                <div className="icon-circle"></div>
+                <div className="icon-fix"></div>
+              </div>
             </div>
+            <span className="text-4xl font-bold text-on-surface slide-in">
+              Payment Success :D
+            </span>
           </div>
-          <span className="text-4xl font-bold text-on-surface slide-in">
-            Payment Success :D
-          </span>
         </Page>
       </>
     );
@@ -176,16 +173,18 @@ export default function PhaseThreePage() {
       <>
         <Page className="flex flex-col justify-center items-center p-[8rem]">
           <div
-            className="border-2 border-outline p-4
-            flex flex-col justify-center items-center gap-4"
+            className="
+            flex flex-col justify-center items-center gap-12"
           >
-            <span className="font-bold text-4xl">PAYMENT FAILED</span>
-            <span className="text-xl">
+            <span className="font-bold text-8xl text-error">
+              Payment Failed
+            </span>
+            <span className="text-4xl">
               Seems like you close the payment window to cancel or
               unintentionally
             </span>
 
-            <div className="flex flex-row justify-center gap-4 text-xl">
+            <div className="flex flex-row justify-center gap-12">
               <Button type="danger" onClick={handleExit}>
                 Cancel
               </Button>

@@ -4,7 +4,8 @@ import Frame from "../interfaces/Frame";
 import Theme from "../interfaces/Theme";
 import { FilterPreset } from "../interfaces/ImageFilter.tsx";
 import ThemeManager from "./ThemeManager";
-import { NetworkError } from "../helpers/AppError";
+import { DeviceError, NetworkError } from "../helpers/AppError";
+import BackendService from "./BackendService.tsx";
 
 type BoothInitializeResponse = {
   booth: Booth;
@@ -20,10 +21,21 @@ const api = axios.create({
   },
 });
 
+export enum BoothStatus {
+  RUNNING,
+  BOOTING,
+  RELOADING,
+  CRASH,
+}
+
 export default class BoothManager {
   private static boothInstance: Booth;
   public static boothId: string | undefined = import.meta.env.VITE_BOOTH_TOKEN;
   private static theme: Theme;
+  private static phase: number = -1;
+
+  /** @type {BoothStatus} booth state indicator */
+  public static status: BoothStatus;
 
   /**
    * Get current Booth instance
@@ -41,31 +53,23 @@ export default class BoothManager {
     return this.theme;
   }
 
-  /** Update booth content and config with backend
-   * @returns {Promise<void>}
-   */
-  public static async update() {
-    await api
-      .get<BoothInitializeResponse>("/booths/init", {
-        headers: {
-          Token: this.boothId,
-        },
-      })
-      .then((response) => {
-        this.boothInstance = response.data.booth;
-        this.theme = response.data.theme;
-      })
-      .catch((error) => {
-        throw new NetworkError(
-          error as string,
-          "We encounter fatal error, we're sorry for this inconvenience but you cannot use this booth for now :(",
-        );
-      });
-
-    await ThemeManager.update(this.theme);
+  static get Status(): BoothStatus {
+    return this.status;
   }
 
-  public static async boot() {
+  public static get Phase(): number {
+    return this.phase;
+  }
+
+  public static setPhase(phase: number) {
+    this.phase = phase;
+  }
+
+  static set setStatus(status: BoothStatus) {
+    this.status = status;
+  }
+
+  public static async boot(): Promise<number | void> {
     await api
       .get<BoothInitializeResponse>("/booths/init", {
         headers: {
@@ -83,7 +87,9 @@ export default class BoothManager {
         );
       });
 
-    await ThemeManager.update(this.theme);
+    console.log(JSON.parse(this.theme.config));
+    await ThemeManager.update(JSON.parse(this.theme.config));
+    return await BackendService.start();
   }
 
   /**
@@ -102,5 +108,18 @@ export default class BoothManager {
       .catch((error) => {
         throw new NetworkError(error as string);
       });
+  }
+
+  public static reload(continueAt: number) {
+    this.status = BoothStatus.RELOADING;
+    this.setPhase(continueAt);
+  }
+
+  public static checkStatus() {
+    if (this.status === BoothStatus.RELOADING) {
+      return this.phase;
+    } else if (this.status === BoothStatus.CRASH) {
+      throw new DeviceError("Unexpected Crash");
+    } else return;
   }
 }

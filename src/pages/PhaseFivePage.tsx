@@ -9,6 +9,7 @@ import { useNavigate } from "react-router";
 import ErrorPage from "../components/ErrorPage";
 import Page from "../components/Page";
 import { globalData } from "../contexts/DataContext";
+import Liveview from "../components/Liveview";
 
 enum State {
   RUNNING,
@@ -20,13 +21,12 @@ enum State {
 export default function PhaseFivePage({}) {
   const { frame } = globalData();
   const INTERVAL = 5;
-  const DURATION = INTERVAL * (frame?.count! * 2);
+  const DURATION = INTERVAL * frame?.count! * 2;
   let STAGES = [];
   for (let i = 1; i <= DURATION / INTERVAL; i++) STAGES.push(i);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const phase = usePhase();
-  const navigate = useNavigate();
   const [errorState, setErrorState] = useState<string | null>(null);
   const [state, setState] = useState<State | null>(State.RUNNING);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -34,18 +34,8 @@ export default function PhaseFivePage({}) {
   const [timer, setTimer] = useState<number>(INTERVAL);
   const [stage, setStage] = useState<number>(1);
   const [pause, setPause] = useState<boolean>(false);
-  const cameraPreview = useMemo(() => <CameraPreview pause={pause} />, [pause]);
-
-  /**
-   * Temporary function to simulate backend calls
-   */
-  const simulateBackend = async (): Promise<void> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve();
-      }, 5000);
-    });
-  };
+  const data = globalData();
+  const [width, setWidth] = useState<number>(1280);
 
   /**
    * Capture handling
@@ -68,11 +58,13 @@ export default function PhaseFivePage({}) {
   };
 
   const handleFinish = () => {
-    phase.setCurrentPhase(6);
-    navigate("/phase6");
+    phase.next();
   };
 
   useEffect(() => {
+    const ratio = data.frame?.layouts[0].Width! / width;
+    setWidth(width * ratio);
+
     if (localStorage.getItem("hasUserInteracted") === "true") {
       if (audioRef.current) {
         audioRef.current.play();
@@ -121,7 +113,7 @@ export default function PhaseFivePage({}) {
       </>
     );
 
-  if (state === State.RUNNING)
+  if (state === State.RUNNING || state === State.PROCESSING)
     return (
       <>
         <div
@@ -138,7 +130,7 @@ export default function PhaseFivePage({}) {
 
           {(state === State.RUNNING || state === State.PROCESSING) && (
             <div className="flex flex-col items-center justify-center gap-4">
-              {cameraPreview}
+              {!pause && <Liveview />}
               <div className="flex items-center justify-evenly">
                 {STAGES.map((index) => (
                   <div

@@ -1,12 +1,34 @@
 import LoggerService from "./LoggerService";
 import { DeviceError, ElectronError } from "../helpers/AppError";
 import IPCResponse from "../interfaces/IPCResponse";
+import PaymentCallback from "../interfaces/PaymentCallback";
+import { FabricObject } from "fabric";
+import Frame from "../interfaces/Frame";
+
+interface SessionStartResponse {
+  phase: number;
+}
 
 /**
  * Set of functions to invoke processes in backend runtime
  *
  */
 class BackendService {
+  /** To be calld on beginning of a session
+   *  @return {Promise<void | number>} if a interrupted phase happens before the component subtree mounts, returns the number of that phase
+   */
+  public static async start(): Promise<void | number> {
+    await window.electron
+      .invoke("session/start")
+      .then((response: IPCResponse<SessionStartResponse>) => {
+        response = new IPCResponse<SessionStartResponse>(response);
+        return response.data?.phase;
+      })
+      .catch((error) => {
+        throw error;
+      });
+  }
+
   /**
    * Setup camera availability by checkin status to backend
    * @returns {Promise<void | string>}
@@ -29,6 +51,15 @@ class BackendService {
         LoggerService.error(error.message);
         throw error;
       });
+  }
+
+  /** send signal to Electron process to increment phase number in current session */
+  public static async sessionNext() {
+    if (window.electron == undefined) {
+      throw new ElectronError("Electron backend is not exposed");
+    }
+
+    await window.electron.invoke("session/next");
   }
 
   /**
@@ -118,7 +149,7 @@ class BackendService {
    * Reset session, clean up capture files and media, set all indexes to initial value
    * @returns {Promise<string | void>} Returns status message when resolved, otherwise throw error
    */
-  public static async resetSession(): Promise<string | void> {
+  public static async reset(): Promise<string | void> {
     return await window.electron
       ?.invoke("session/reset")
       .then((response: IPCResponse<object>) => {
@@ -132,13 +163,36 @@ class BackendService {
       });
   }
 
-  public static async sendCanvas(url: string): Promise<void> {
-    console.log("Sending canvas url", url);
+  public static async saveCanvas(url: string): Promise<void> {
     return await window.electron?.send("media/save", url);
   }
 
-  public static async print(url: string): Promise<void> {
-    return await window.electron.send("media/print", url);
+  public static async print(
+    url: string,
+    quantity: number,
+    split: boolean,
+  ): Promise<void> {
+    return await window.electron?.send("media/print", {
+      data: url,
+      quantity: quantity,
+      split: split,
+    });
+  }
+
+  public static sendMotion(dataUrl: string) {
+    window.electron?.invoke("media/motion", dataUrl);
+  }
+
+  public static async sendPayment(payment: PaymentCallback) {
+    await window.electron?.invoke("session/payment", payment);
+  }
+
+  public static async sendFrame(frame: Frame) {
+    await window.electron?.invoke("session/frame", frame);
+  }
+
+  public static async sendCanvas(canvas: string) {
+    await window.electron?.invoke("session/canvas", canvas);
   }
 }
 

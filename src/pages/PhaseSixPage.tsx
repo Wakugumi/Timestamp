@@ -45,7 +45,6 @@ export default function PhaseSixPage() {
   const Canvas = useRef<CanvasFraming>();
   const canvas = useMemo(() => <canvas ref={canvasRef} />, [Canvas.current]);
   const phase = usePhase();
-  const navigate = useNavigate();
 
   useEffect(() => {
     console.info("current state", state);
@@ -150,9 +149,7 @@ export default function PhaseSixPage() {
 
   const handleSubmit = () => {
     setPictures(slots.map((slot) => slot.item?.src!));
-    phase.setCurrentPhase(7);
-    navigate("/phase7");
-    console.log("Deserializing");
+    phase.next();
   };
 
   const handleSave = () => {
@@ -178,8 +175,10 @@ export default function PhaseSixPage() {
             {state === State.PROCESSING && <LoadingAnimation />}
           </div>
 
-          <div className="flex-1 flex flex-col gap-8 items-stretch justify-start">
-            <span className="flex-none text-xl">Select your photos</span>
+          <div className="flex-1 flex flex-col gap-8 items-stretch justify-start bg-surface-container p-8 shadow outline rounded">
+            <span className="flex-none text-center text-4xl font-bold">
+              Select your photos
+            </span>
             <div
               className="flex-1 flex flex-wrap max-h-[60vh] overflow-y-auto overflow-x-hidden scroll-smooth gap-4 items-center justify-center
               [&::-webkit-scrollbar]:w-4

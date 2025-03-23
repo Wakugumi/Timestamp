@@ -1,13 +1,7 @@
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import React, {
-  useRef,
-  useState,
-  useEffect,
-  act,
-  MouseEventHandler,
-} from "react";
+import React, { useState, useEffect } from "react";
 import "./PhaseTwoPage.css";
 import { useNavigate } from "react-router";
 import Icon from "../components/Icon.tsx";
@@ -21,7 +15,6 @@ import { AppError } from "../helpers/AppError.tsx";
 import { usePhase } from "../contexts/PhaseContext.tsx";
 import useIdleTimer from "../hooks/useIdleTimer.tsx";
 import IdleMessage from "../components/IdleMessage.tsx";
-import imageAspectRatio from "../utilities/imageAspectRatio.tsx";
 import LoadingAnimation from "../components/LoadingAnimation.tsx";
 import Page from "../components/Page.tsx";
 import ExitButton from "../components/ExitButton.tsx";
@@ -82,7 +75,7 @@ function ConfirmPrompt({
     <>
       <Page
         className="flex flex-row justify-center
-      bg-surface border-2 border-outline gap-12 min-h-full items-stretch"
+      border-2 border-outline gap-12 min-h-full items-stretch"
       >
         <div className="flex-1 flex justify-center items-center">
           <LazyImage
@@ -92,10 +85,10 @@ function ConfirmPrompt({
         </div>
 
         {/** Right Panel */}
-        <div className="flex-1 flex flex-col gap-24 justify-center">
+        <div className="flex-1 flex flex-col justify-between">
           <span className="text-6xl font-bold">{frame.name}</span>
 
-          <div className="flex flex-wrap gap-12 text-4xl">
+          <div className="flex flex-wrap gap-12 text-2xl">
             <div className="flex flex-row justify-center items-center gap-4 text-on-surface">
               <Icon type="photo" size="3rem"></Icon>
               <span>{frame.count} photos in frame</span>
@@ -107,7 +100,7 @@ function ConfirmPrompt({
             </div>
           </div>
 
-          <div className="block bg-surface-container-lowest shadow-xl rounded-xl p-12">
+          <div className="block bg-surface-container shadow-xl rounded-xl p-12">
             <span className="block text-2xl mb-8">
               Select how many prints you want?
             </span>
@@ -161,8 +154,7 @@ export default function PhaseTwoPage() {
   const [state, setState] = useState<State>(State.STARTUP);
   const navigate = useNavigate();
   const phase = usePhase();
-  const [isIdle, setIsIdle] = useState<boolean>(true);
-  const idleMessage = useIdleTimer(300000, isIdle);
+  const _ = useIdleTimer(30000, true);
   const errorIdle = useIdleTimer(10000, state === State.ERROR);
   const [rawFrames, setRawFrames] = useState<Frame[]>([]);
   const [frames, setFrames] = useState<Frame[]>([]);
@@ -176,14 +168,6 @@ export default function PhaseTwoPage() {
   const [selected, setSelected] = useState<Frame | null>(null);
   const { setFrame, setQuantity, originalWidth, originalHeight } = globalData();
 
-  const framesWithRatio = async (frames: Frame[]) => {
-    return await Promise.all(
-      frames.map(async (frame) => {
-        const aspectRatio = await imageAspectRatio(frame.url as string);
-        return { ...frame, aspectRatio };
-      }),
-    );
-  };
   const startup = async () => {
     try {
       await FrameService.getFrames().then(async (value) => {
@@ -238,6 +222,7 @@ export default function PhaseTwoPage() {
     setState(State.LOADING);
 
     setFrame(selected as Frame);
+
     const img = new Image();
     img.src = selected?.url!;
     img.onload = () => {
@@ -249,8 +234,7 @@ export default function PhaseTwoPage() {
       setError(error!);
     };
 
-    phase.setCurrentPhase(6);
-    navigate("/phase6", { state: selected });
+    phase.next();
   };
   if (state === State.LOADING)
     return (

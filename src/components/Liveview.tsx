@@ -1,69 +1,55 @@
 import { useEffect, useRef } from "react";
+import BackendService from "../services/BackendService";
 
-interface CameraPreviewProps {
+interface LiveviewProps {
   width?: string;
   height?: string;
-  pause?: boolean;
 }
-const CameraPreview = ({
+
+export default function Liveview({
   width = "1920",
   height = "1080",
-  pause = false,
-}: CameraPreviewProps) => {
+}: LiveviewProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    console.log("[CameraPreview] Mounts");
+    if (!wsRef.current) _stream();
+
+    let interval = setInterval(() => {
+      if (wsRef.current)
+        BackendService.sendMotion(
+          canvasRef.current?.toDataURL("image/jpeg", 0.5)!,
+        );
+    }, 500);
 
     return () => {
-      console.log("[CameraPreview] Unmounts");
-    };
-  }, []);
-
-  useEffect(() => {
-    console.log("[CameraPreview] Pause: ", pause);
-
-    if (pause && wsRef.current) {
-      wsRef.current?.close();
-      const ctx = canvasRef.current?.getContext("2d");
-      ctx?.clearRect(
-        0,
-        0,
-        canvasRef.current?.width as number,
-        canvasRef.current?.height as number,
-      );
-    } else if (!pause) _videoStream();
-
-    return () => {
+      clearInterval(interval);
       if (wsRef.current) {
         wsRef.current.close();
         wsRef.current = null;
       }
     };
-  }, [pause]);
+  }, []);
 
-  /** Video stream hander */
-  const _videoStream = () => {
-    console.log("Video stream called");
+  const _stream = () => {
     if (!canvasRef.current) return;
 
     wsRef.current = new WebSocket("ws://localhost:8080");
-    console.log("[CameraPreview] Websocket opens");
     wsRef.current.binaryType = "blob";
 
-    let imageBuffer: Uint8Array<ArrayBufferLike>[] = [];
+    let buffer: Uint8Array<ArrayBufferLike>[] = [];
     const canvas = canvasRef.current?.getContext("2d", {
       willReadFrequently: true,
     });
 
     window.electron?.onStream((chunk: Uint8Array) => {
-      imageBuffer.push(chunk);
+      buffer.push(chunk);
 
-      if (imageBuffer.length > 10) imageBuffer.shift();
+      if (buffer.length > 32) buffer.shift();
 
-      if (!imageBuffer.length) return;
-      const latestChunk = imageBuffer[imageBuffer.length - 1];
+      if (!buffer.length) return;
+      const latestChunk = buffer[buffer.length - 1];
 
       const blob = new Blob([latestChunk], { type: "image/jpeg" });
       const url = URL.createObjectURL(blob);
@@ -86,9 +72,12 @@ const CameraPreview = ({
         URL.revokeObjectURL(img.src);
       };
       img.src = url;
-      imageBuffer = [];
+      buffer = [];
     });
-    wsRef.current.onclose = () => console.log("socket disconnected");
+    wsRef.current.onclose = () => {
+      console.log("socket disconnected");
+      wsRef.current = null;
+    };
   };
 
   return (
@@ -98,5 +87,4 @@ const CameraPreview = ({
       </div>
     </>
   );
-};
-export default CameraPreview;
+}

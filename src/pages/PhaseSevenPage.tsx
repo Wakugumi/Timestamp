@@ -24,7 +24,6 @@ export default function PhaseSevenPage() {
   const [presets, setPresets] = useState<FilterPreset[]>([]);
   const [selected, setSelected] = useState<number>(-1);
   const phase = usePhase();
-  const navigate = useNavigate();
 
   const data = globalData();
 
@@ -65,7 +64,9 @@ export default function PhaseSevenPage() {
     return (
       <>
         <div className="flex flex-col justify-between items-stretch gap-8">
-          <span className="flex-1 text-4xl font-bold">Are you sure?</span>
+          <span className="flex-1 text-4xl font-bold text-center">
+            Are you sure?
+          </span>
 
           <div className="flex flex-col gap-8">
             <Button
@@ -75,7 +76,7 @@ export default function PhaseSevenPage() {
                 setState(State.RUNNING);
               }}
             >
-              I want to change
+              Wait, I want to change
             </Button>
             <Button onClick={() => handleSave()}>Yes, I'm sure</Button>
           </div>
@@ -95,7 +96,7 @@ export default function PhaseSevenPage() {
     const img = new Image();
     img.src = data.frame?.url!;
     img.onload = async () => {
-      BackendService.sendCanvas(
+      BackendService.saveCanvas(
         (await Canvas.current?.export(
           img.naturalWidth,
           img.naturalHeight,
@@ -105,28 +106,31 @@ export default function PhaseSevenPage() {
         img.naturalWidth,
         img.naturalHeight,
       )) as string;
-      await BackendService.print(exports);
+      await BackendService.print(exports, data.quantity, data.frame?.split!);
     };
 
-    phase.setCurrentPhase(8);
-    navigate("/phase8");
+    data.saveCanvas(Canvas.current?.serialize()!);
+
+    phase?.next();
   };
 
   return (
     <>
       <Page className="flex flex-row justify-center items-stretch gap-8">
         <div
-          className="flex flex-1 items-center justify-center max-h-[80vh] min-w-[60vw]"
+          className="flex flex-1 items-center justify-center max-h-[80vh]"
           ref={containerRef}
         >
           <canvas ref={canvasRef} />
         </div>
 
-        <div className="flex-none flex flex-col jusfify-between items-stretch gap-8">
+        <div className="flex-none flex flex-col jusfify-between items-stretch gap-8 p-8 outline shadow rounded bg-surface-container">
           {state === State.CONFIRMING && <Confirm />}
           {state === State.RUNNING && (
             <>
-              <span className="text-4xl font-bold">Apply image fitler</span>
+              <span className="text-4xl font-bold text-center">
+                Apply image fitler
+              </span>
               <div
                 className="flex-1 flex flex-col gap-8 overflow-y-auto overflow-x-hidden scroll-smooth [&::-webkit-scrollbar]:w-4
             [&::-webkit-scrollbar-track]:rounded-full

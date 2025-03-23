@@ -4,13 +4,13 @@ import "./App.css";
 import WelcomePage from "./pages/WelcomePage";
 import PhaseOnePage from "./pages/PhaseOnePage";
 import ProtectedRoute from "./components/navigation/ProtectedRoute";
-import { PhaseProvider } from "./contexts/PhaseContext";
+import { PhaseProvider, usePhase } from "./contexts/PhaseContext";
 import { DataProvider } from "./contexts/DataContext.tsx";
 import SettingPage from "./pages/SettingPage";
 import PhaseTwoPage from "./pages/PhaseTwoPage";
 import { PopupProvider } from "./contexts/PopupContext";
 import { Popup } from "./components/Popup";
-import BoothManager from "./services/BoothManager";
+import BoothManager, { BoothStatus } from "./services/BoothManager";
 import LoggerService from "./services/LoggerService";
 import PhaseThreePage from "./pages/PhaseThreePage";
 import PhaseFourPage from "./pages/PhaseFourPage";
@@ -18,6 +18,7 @@ import PhaseFivePage from "./pages/PhaseFivePage";
 import PhaseSixPage from "./pages/PhaseSixPage.tsx";
 import PhaseSevenPage from "./pages/PhaseSevenPage.tsx";
 import PhaseEightPage from "./pages/PhaseEightPage.tsx";
+import ThemeManager from "./services/ThemeManager.tsx";
 
 enum State {
   LOADING = 0,
@@ -28,12 +29,14 @@ enum State {
 function App() {
   const [state, setState] = useState<State>(State.LOADING);
   const [error, setError] = useState<Error>();
+  const phase = usePhase();
 
   useEffect(() => {
     if (state === State.LOADING) {
       (async () => {
         try {
-          await BoothManager.boot();
+          const savedPhase = await BoothManager.boot();
+          if (typeof savedPhase === "number") BoothManager.reload(savedPhase!);
           setState(State.RUNNING);
         } catch (error) {
           LoggerService.error(error as string);
@@ -51,16 +54,16 @@ function App() {
       <>
         <div
           className="min-h-dvh max-h-dvh bg-background font-work"
-          //style={{
-          //  backgroundImage: `url("${ThemeManager.getUrl()}")`,
-          //  backgroundSize: "cover",
-          //}}
+          style={{
+            backgroundImage: `url("${ThemeManager.getUrl()}")`,
+            backgroundSize: "cover",
+          }}
         >
           <DataProvider>
-            <PhaseProvider>
-              <PopupProvider>
-                <Popup />
-                <BrowserRouter>
+            <PopupProvider>
+              <Popup />
+              <BrowserRouter>
+                <PhaseProvider>
                   <Routes>
                     <Route path="/" element={<WelcomePage />} />
                     <Route path="/setting" element={<SettingPage />} />
@@ -87,9 +90,9 @@ function App() {
                     <Route path="/phase7" element={<PhaseSevenPage />} />
                     <Route path="/phase8" element={<PhaseEightPage />} />
                   </Routes>
-                </BrowserRouter>
-              </PopupProvider>
-            </PhaseProvider>
+                </PhaseProvider>
+              </BrowserRouter>
+            </PopupProvider>
           </DataProvider>
         </div>
       </>
