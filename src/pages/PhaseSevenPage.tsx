@@ -96,16 +96,14 @@ export default function PhaseSevenPage() {
     const img = new Image();
     img.src = data.frame?.url!;
     img.onload = async () => {
-      BackendService.saveCanvas(
-        (await Canvas.current?.export(
-          img.naturalWidth,
-          img.naturalHeight,
-        )) as string,
-      );
-      const exports = (await Canvas.current?.replicateAndExport(
+      
+      const exports = (await Canvas.current?.export(
         img.naturalWidth,
         img.naturalHeight,
       )) as string;
+      await BackendService.saveCanvas(
+        exports
+      );
       await BackendService.print(exports, data.quantity, data.frame?.split!);
     };
 

@@ -33,9 +33,11 @@ export default function PhaseEightPage() {
 
     if (state === State.RUNNING)
       if (qrCanvasRef.current)
-        QR.toCAnvas(qrCanvasRef.current, url, (error: Error) => {
+        QR.toCanvas(qrCanvasRef.current, url, (error: Error) => {
+	if(error) {
           console.error(error);
           throw error;
+	  }
         });
   }, [state]);
 

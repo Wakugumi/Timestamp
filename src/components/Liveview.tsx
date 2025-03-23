@@ -56,12 +56,6 @@ export default function Liveview({
       const img = new Image();
 
       img.onload = function render() {
-        canvas?.clearRect(
-          0,
-          0,
-          canvasRef.current?.width as number,
-          canvasRef.current?.height as number,
-        );
         canvas?.drawImage(
           img,
           0,
