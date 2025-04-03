@@ -132,10 +132,13 @@ class BackendService {
   public static async process(count: number, urls: string[]) {
     console.log("Sending upload to backend", count, urls);
     return await window.electron
-      ?.invoke("session/process", {
-        count: count,
-        urls: urls,
-      })
+      ?.invoke(
+        "session/process",
+        JSON.stringify({
+          count: count,
+          urls: urls,
+        }),
+      )
       .then((response: IPCResponse<string>) => {
         response = new IPCResponse<string>(response);
         return response.data;

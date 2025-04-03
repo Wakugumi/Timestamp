@@ -1,28 +1,39 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import BackendService from "../services/BackendService";
 
 interface LiveviewProps {
   width?: string;
   height?: string;
+  pause?: boolean;
 }
 
 export default function Liveview({
-  width = "1920",
-  height = "1080",
+  width = "1440",
+  height = "720",
+  pause = false,
 }: LiveviewProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
 
+  const [isStream, setIsStream] = useState(false);
+
   useEffect(() => {
-    if (!wsRef.current) _stream();
+    if (!wsRef.current && !pause) _stream();
 
     let interval = setInterval(() => {
-      if (wsRef.current)
+      if (!pause)
         BackendService.sendMotion(
           canvasRef.current?.toDataURL("image/jpeg", 0.5)!,
         );
     }, 500);
 
+    if (pause) {
+      clearInterval(interval);
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+    }
     return () => {
       clearInterval(interval);
       if (wsRef.current) {
@@ -30,7 +41,7 @@ export default function Liveview({
         wsRef.current = null;
       }
     };
-  }, []);
+  }, [pause]);
 
   const _stream = () => {
     if (!canvasRef.current) return;
@@ -44,9 +55,10 @@ export default function Liveview({
     });
 
     window.electron?.onStream((chunk: Uint8Array) => {
+      setIsStream(true);
       buffer.push(chunk);
 
-      if (buffer.length > 32) buffer.shift();
+      if (buffer.length > 10) buffer.shift();
 
       if (!buffer.length) return;
       const latestChunk = buffer[buffer.length - 1];
@@ -71,6 +83,7 @@ export default function Liveview({
     wsRef.current.onclose = () => {
       console.log("socket disconnected");
       wsRef.current = null;
+      setIsStream(false);
     };
   };
 
