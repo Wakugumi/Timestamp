@@ -1,7 +1,6 @@
 import { useRef, useState, useEffect, useMemo } from "react";
 import { globalData } from "../contexts/DataContext";
 import Page from "../components/Page";
-import LoadingAnimation from "../components/LoadingAnimation";
 import CanvasFraming from "../utilities/CanvasFraming";
 import Frame from "../interfaces/Frame";
 import BackendService from "../services/BackendService";
@@ -9,7 +8,6 @@ import { FilterPreset, ImageFilter } from "../interfaces/ImageFilter";
 import ImageFilterService from "../services/ImageFilterService";
 import Button from "../components/Button.tsx";
 import { usePhase } from "../contexts/PhaseContext.tsx";
-import { useNavigate } from "react-router";
 
 enum State {
   LOADING,
@@ -96,14 +94,11 @@ export default function PhaseSevenPage() {
     const img = new Image();
     img.src = data.frame?.url!;
     img.onload = async () => {
-      
       const exports = (await Canvas.current?.export(
         img.naturalWidth,
         img.naturalHeight,
       )) as string;
-      await BackendService.saveCanvas(
-        exports
-      );
+      await BackendService.saveCanvas(exports);
       await BackendService.print(exports, data.quantity, data.frame?.split!);
     };
 

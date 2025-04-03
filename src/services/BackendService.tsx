@@ -130,15 +130,15 @@ class BackendService {
    * @returns {string} view page url
    */
   public static async process(count: number, urls: string[]) {
-    console.log("Sending upload to backend", count, urls);
+    const obj = JSON.parse(
+      JSON.stringify({
+        count: count as number,
+        urls: urls as string[],
+      }),
+    );
+    console.log(obj);
     return await window.electron
-      ?.invoke(
-        "session/process",
-        JSON.stringify({
-          count: count,
-          urls: urls,
-        }),
-      )
+      ?.invoke("session/process", obj)
       .then((response: IPCResponse<string>) => {
         response = new IPCResponse<string>(response);
         return response.data;
@@ -167,7 +167,7 @@ class BackendService {
   }
 
   public static async saveCanvas(url: string): Promise<void> {
-    return await window.electron?.send("media/save", url);
+    return await window.electron?.invoke("media/save", url);
   }
 
   public static async print(
@@ -175,7 +175,7 @@ class BackendService {
     quantity: number,
     split: boolean,
   ): Promise<void> {
-    return await window.electron?.send("media/print", {
+    return await window.electron?.invoke("media/print", {
       data: url,
       quantity: quantity,
       split: split,

@@ -56,7 +56,7 @@ export default function PhaseThreePage() {
           hidePopup();
         }}
         onConfirm={() => {
-          navigate("/");
+          phase?.restart();
           hidePopup();
         }}
       ></ConfirmPopup>,

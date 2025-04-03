@@ -4,6 +4,9 @@ import BackendService from "../services/BackendService";
 import QR from "qrcode";
 import { globalData } from "../contexts/DataContext";
 import LoadingAnimation from "../components/LoadingAnimation";
+import useIdleTimer from "../hooks/useIdleTimer";
+import { usePhase } from "../contexts/PhaseContext";
+import Button from "../components/Button";
 
 enum State {
   LOADING,
@@ -16,7 +19,15 @@ export default function PhaseEightPage() {
   const [state, setState] = useState<State>(State.LOADING);
   const [url, setUrl] = useState<string>("");
   const qrCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [idle, setIdle] = useState(false);
   const data = globalData();
+  const phase = usePhase();
+
+  const handleFinish = () => {
+    BackendService.reset();
+    phase?.restart();
+  };
+  const _ = useIdleTimer(10000, idle, handleFinish);
 
   useEffect(() => {
     if (state === State.LOADING)
@@ -39,6 +50,7 @@ export default function PhaseEightPage() {
             throw error;
           }
         });
+    setIdle(true);
   }, [state]);
 
   return (
@@ -63,6 +75,10 @@ export default function PhaseEightPage() {
             <span className="text-xl">
               Please wait while your photo is being printed
             </span>
+
+            <span className="text-xl">Thank you for using our service</span>
+
+            <Button onClick={() => handleFinish()}>I'm Done</Button>
           </div>
         )}
       </div>

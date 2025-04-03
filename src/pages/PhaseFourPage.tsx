@@ -5,10 +5,9 @@ import Button from "../components/Button";
 
 export default function PhaseFourPage() {
   const phase = usePhase();
-  const navigate = useNavigate();
 
   const handleConfirm = async () => {
-    phase.next();
+    phase?.next();
   };
 
   return (

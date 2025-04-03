@@ -8,7 +8,6 @@ import Frame, { Layout } from "../interfaces/Frame";
 import Button from "../components/Button";
 import CanvasFraming from "../utilities/CanvasFraming.tsx";
 import { usePhase } from "../contexts/PhaseContext.tsx";
-import { useNavigate } from "react-router";
 import ConfirmPhaseSix from "./ConfirmPhaseSix.tsx";
 
 enum State {

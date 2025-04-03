@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { usePhase } from "../contexts/PhaseContext";
 
 /**
  * @params {timeout} timeout duration in milliseconds;
  * @returns {string | null} idle message if given
  */
-const useIdleTimer = (timeout: number, isActive: boolean): string | null => {
-  const navigate = useNavigate();
+const useIdleTimer = (
+  timeout: number,
+  isActive: boolean,
+  callback?: () => void,
+): string | null => {
+  const phase = usePhase();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [remaining, setRemaining] = useState<number | null>(null);
   useEffect(() => {
@@ -18,7 +22,8 @@ const useIdleTimer = (timeout: number, isActive: boolean): string | null => {
 
     // When IDLE timer runs out, everything called here
     const handleIdle = () => {
-      navigate("/");
+      if (!callback) phase?.restart();
+      else callback();
     };
 
     const resetTimer = () => {
@@ -52,7 +57,7 @@ const useIdleTimer = (timeout: number, isActive: boolean): string | null => {
       clearInterval(interval);
       events.forEach((event) => window.removeEventListener(event, resetTimer));
     };
-  }, [isActive, timeout, navigate]);
+  }, [isActive, timeout]);
 
   return remaining !== null && remaining <= 5000
     ? `Exitting this session in ${remaining / 1000}...`
