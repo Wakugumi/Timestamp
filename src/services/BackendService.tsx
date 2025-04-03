@@ -2,8 +2,8 @@ import LoggerService from "./LoggerService";
 import { DeviceError, ElectronError } from "../helpers/AppError";
 import IPCResponse from "../interfaces/IPCResponse";
 import PaymentCallback from "../interfaces/PaymentCallback";
-import { FabricObject } from "fabric";
 import Frame from "../interfaces/Frame";
+import { Session } from "../interfaces/Session";
 
 interface SessionStartResponse {
   phase: number;
@@ -17,14 +17,15 @@ class BackendService {
   /** To be calld on beginning of a session
    *  @return {Promise<void | number>} if a interrupted phase happens before the component subtree mounts, returns the number of that phase
    */
-  public static async start(): Promise<void | number> {
-    await window.electron
-      .invoke("session/start")
-      .then((response: IPCResponse<SessionStartResponse>) => {
-        response = new IPCResponse<SessionStartResponse>(response);
-        return response.data?.phase;
+  public static async start(): Promise<Session | void> {
+    return await window.electron
+      .invoke("session/begin")
+      .then((response: IPCResponse<Session>) => {
+        console.log(response.data);
+        response = new IPCResponse<Session>(response);
+        return response.data;
       })
-      .catch((error) => {
+      .catch((error: Error) => {
         throw error;
       });
   }
@@ -59,7 +60,7 @@ class BackendService {
       throw new ElectronError("Electron backend is not exposed");
     }
 
-    await window.electron.invoke("session/next");
+    await window.electron.invoke("session/proceed");
   }
 
   /**
@@ -151,7 +152,7 @@ class BackendService {
    */
   public static async reset(): Promise<string | void> {
     return await window.electron
-      ?.invoke("session/reset")
+      ?.invoke("session/end")
       .then((response: IPCResponse<object>) => {
         response = new IPCResponse<object>(response);
         if (response.OK) return response.message;
@@ -184,15 +185,19 @@ class BackendService {
   }
 
   public static async sendPayment(payment: PaymentCallback) {
-    await window.electron?.invoke("session/payment", payment);
+    await window.electron?.invoke("session/state/payment", payment);
   }
 
   public static async sendFrame(frame: Frame) {
-    await window.electron?.invoke("session/frame", frame);
+    await window.electron?.invoke("session/state/frame", frame);
   }
 
   public static async sendCanvas(canvas: string) {
-    await window.electron?.invoke("session/canvas", canvas);
+    await window.electron?.invoke("media/canvas", canvas);
+  }
+
+  public static fallback() {
+    window.electron?.invoke("session/throw");
   }
 }
 

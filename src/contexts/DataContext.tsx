@@ -37,6 +37,7 @@ interface DataContextValue<T extends string | number | object> {
   originalHeight: MutableRefObject<number>;
   aspectRatio: MutableRefObject<number>;
   reset: () => void;
+  loadData: (data: any) => void;
 }
 
 /** @type {React.Context<DataContextValue<any> | undefined>} */
@@ -77,6 +78,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
     aspectRatio.current = 1;
   };
 
+  const loadData = (data: any) => {
+    setPayment(data.payment);
+    setQuantity(data.quantity);
+    saveCanvas(JSON.stringify(data.canvas));
+    setFrame(data.frame);
+  };
+
   useEffect(() => {
     BackendService.sendPayment(payment!);
     BackendService.sendFrame(frame!);
@@ -104,6 +112,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
         originalWidth,
         aspectRatio,
         reset,
+        loadData,
       }}
     >
       {children}

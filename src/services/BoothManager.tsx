@@ -6,6 +6,17 @@ import { FilterPreset } from "../interfaces/ImageFilter.tsx";
 import ThemeManager from "./ThemeManager";
 import { DeviceError, NetworkError } from "../helpers/AppError";
 import BackendService from "./BackendService.tsx";
+import {
+  ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import { globalData } from "../contexts/DataContext.tsx";
+import { usePhase } from "../contexts/PhaseContext.tsx";
+import { Session } from "../interfaces/Session.ts";
+import { ipcMain } from "electron";
 
 type BoothInitializeResponse = {
   booth: Booth;
@@ -69,7 +80,7 @@ export default class BoothManager {
     this.status = status;
   }
 
-  public static async boot(): Promise<number | void> {
+  public static async boot(): Promise<Session | void> {
     await api
       .get<BoothInitializeResponse>("/booths/init", {
         headers: {
@@ -123,3 +134,41 @@ export default class BoothManager {
     } else return;
   }
 }
+
+const InitiatorContext = createContext(null);
+
+export const Initiator = ({ children }: { children: ReactNode }) => {
+  const [isInit, setIsInit] = useState(false);
+  const data = globalData();
+  const phase = usePhase();
+  useEffect(() => {
+    (async () => {
+      const state = await BoothManager.boot();
+
+      console.log(state);
+      data.loadData(state);
+
+      if (state?.phase! > 1) phase?.jumpTo(state?.phase!);
+      setIsInit(true);
+    })().catch((error) => {
+      throw error;
+    });
+  }, []);
+
+  if (isInit)
+    return (
+      <InitiatorContext.Provider value={null}>
+        <div
+          className="min-h-dvh max-h-dvh bg-background font-work"
+          style={{
+            backgroundImage: `url("${ThemeManager.getUrl()}")`,
+            backgroundSize: "cover",
+          }}
+        >
+          {children}
+        </div>
+      </InitiatorContext.Provider>
+    );
+};
+
+export const useInitiatior = () => useContext(InitiatorContext);

@@ -6,6 +6,7 @@ import BackendService from "../services/BackendService";
 import { AppError } from "../helpers/AppError";
 import useIdleTimer from "../hooks/useIdleTimer";
 import Button from "../components/Button";
+import CameraPreview from "../components/CameraPreview";
 
 enum PageState {
   RUNNING,
@@ -25,7 +26,6 @@ export default function PhaseOnePage() {
   const [state, setState] = useState<PageState>(PageState.LOADING);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const phaseContext = usePhase();
-  const navigate = useNavigate();
   const [idle, setIdle] = useState<boolean>(false);
   const idleMessage = useIdleTimer(10 * 1000, idle);
 
@@ -55,72 +55,8 @@ export default function PhaseOnePage() {
     }
   };
 
-  // Handle cleaning socket
-  const _cleanSocket = () => {
-    if (socket) {
-      socket.close();
-      setSocket(null);
-    }
-  };
-
-  /** Video stream handler */
-  const _videoStream = () => {
-    console.log("Video stream called");
-    const newSocket = new WebSocket("ws://localhost:8080");
-    setSocket(newSocket);
-
-    newSocket.binaryType = "blob";
-
-    let imageBuffer = [];
-    window.electron?.onStream((chunk) => {
-      if (!canvasRef.current) return;
-      const canvas = canvasRef.current.getContext("2d", {
-        willReadFrequently: true,
-      });
-
-      imageBuffer.push(chunk);
-
-      const blob = new Blob(imageBuffer, { type: "image/jpeg" });
-
-      const url = URL.createObjectURL(blob);
-
-      const img = new Image();
-      img.onload = function render() {
-        canvas?.clearRect(
-          0,
-          0,
-          canvasRef.current?.width as number,
-          canvasRef.current?.height as number,
-        );
-        canvas?.drawImage(
-          img,
-          0,
-          0,
-          canvasRef.current?.width as number,
-          canvasRef.current?.height as number,
-        );
-        URL.revokeObjectURL(url);
-      };
-      img.src = url;
-      imageBuffer = [];
-
-      img.onerror = function (err) {
-        console.error("Failed to load stream:", err);
-      };
-    });
-
-    newSocket.onclose = () => console.log("socket disconnected");
-  };
-
-  // Handles when the page state is changed
   useEffect(() => {
     if (state === PageState.RUNNING) {
-      _videoStream();
-      return () => {
-        console.log("Returning?");
-        if (socket) socket.close();
-        setSocket(null);
-      };
     }
 
     if (state === PageState.ERROR) {
@@ -138,13 +74,10 @@ export default function PhaseOnePage() {
         setState(PageState.ERROR);
         setErrorState(error);
       });
-    return () => {
-      _cleanSocket();
-    };
+    return () => {};
   }, []);
 
   const handleProceed = () => {
-    _cleanSocket();
     phaseContext.next();
   };
 
@@ -193,7 +126,7 @@ export default function PhaseOnePage() {
     <>
       <div className="min-h-dvh max-h-dvh bg-surface-container flex flex-col justify-center items-center gap-12 p-8">
         <div className="rounded-xl shadow-xl outline outline-primary outline-8 w-fit">
-          <canvas ref={canvasRef} width={"1280"} height={"720"} />
+          <CameraPreview />
         </div>
         <div className="flex gap-4 items-center text-on-surface text-xl">
           <span>Can you see yourself?</span>

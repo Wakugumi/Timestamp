@@ -1,18 +1,9 @@
 import Icon from "../components/Icon";
 import { usePhase } from "../contexts/PhaseContext";
 import Page from "../components/Page";
-import BoothManager from "../services/BoothManager";
-import { useEffect } from "react";
 
 export default function WelcomePage() {
   const phase = usePhase();
-
-  useEffect(() => {
-    const status = BoothManager.checkStatus();
-    if (typeof status === "number") {
-      phase.jumpTo(status);
-    }
-  }, []);
 
   const handleLaunch = () => {
     localStorage.setItem("hasUserInteracted", "true");

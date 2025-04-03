@@ -1,8 +1,14 @@
+import { useEffect } from "react";
+import BackendService from "../services/BackendService";
+
 interface ErrorPageProps {
   message: string;
   code?: string;
 }
 export default function ErrorPage({ message, code = "" }: ErrorPageProps) {
+  useEffect(() => {
+    BackendService.fallback();
+  }, []);
   return (
     <>
       <div

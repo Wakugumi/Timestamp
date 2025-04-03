@@ -57,7 +57,7 @@ const CameraPreview = ({
       willReadFrequently: true,
     });
 
-    window.electron?.onStream((chunk: Uint8Array) => {
+    window.electron?.onStream((chunk: any) => {
       imageBuffer.push(chunk);
 
       if (imageBuffer.length > 10) imageBuffer.shift();
@@ -70,12 +70,6 @@ const CameraPreview = ({
       const img = new Image();
 
       img.onload = function render() {
-        canvas?.clearRect(
-          0,
-          0,
-          canvasRef.current?.width as number,
-          canvasRef.current?.height as number,
-        );
         canvas?.drawImage(
           img,
           0,
