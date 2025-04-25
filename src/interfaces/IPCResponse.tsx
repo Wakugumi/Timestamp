@@ -1,5 +1,3 @@
-import { DeviceError } from "../helpers/AppError";
-
 enum StatusCode {
   OK = 0,
   FAILED = 1,

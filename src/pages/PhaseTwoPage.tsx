@@ -1,9 +1,7 @@
-import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import "./PhaseTwoPage.css";
-import { useNavigate } from "react-router";
 import Icon from "../components/Icon.tsx";
 import formatPrice from "../utilities/formatPrice.tsx";
 import Frame from "../interfaces/Frame.tsx";
@@ -68,7 +66,7 @@ function ConfirmPrompt({
   }, []);
 
   useEffect(() => {
-    onQuantity(quantity);
+    onQuantity(frame.split ? quantity / 2 : quantity);
   }, [quantity]);
 
   return (
@@ -152,9 +150,8 @@ interface FrameFilters {
 
 export default function PhaseTwoPage() {
   const [state, setState] = useState<State>(State.STARTUP);
-  const navigate = useNavigate();
   const phase = usePhase();
-  const _ = useIdleTimer(30000, true);
+  useIdleTimer(30000, true);
   const errorIdle = useIdleTimer(10000, state === State.ERROR);
   const [rawFrames, setRawFrames] = useState<Frame[]>([]);
   const [frames, setFrames] = useState<Frame[]>([]);
@@ -224,7 +221,11 @@ export default function PhaseTwoPage() {
     setFrame(selected as Frame);
 
     const img = new Image();
-    img.src = selected?.url!;
+    if (typeof selected?.url === "undefined") {
+      setState(State.RUNNING);
+      return;
+    }
+    img.src = selected?.url as string;
     img.onload = () => {
       originalHeight.current = img.naturalHeight;
       originalWidth.current = img.naturalWidth;
@@ -233,8 +234,7 @@ export default function PhaseTwoPage() {
       setState(State.ERROR);
       setError(error!);
     };
-
-    phase.next();
+    phase?.next();
   };
   if (state === State.LOADING)
     return (
@@ -325,9 +325,13 @@ export default function PhaseTwoPage() {
           message={
             error instanceof AppError
               ? (error?.userMessage as string)
-              : error?.message!
+              : (error?.message as string)
           }
-          code={error instanceof AppError ? error?.code! : error?.name!}
+          code={
+            error instanceof AppError
+              ? (error?.code as string)
+              : (error?.name as string)
+          }
         />
       </>
     );

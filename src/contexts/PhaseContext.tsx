@@ -43,7 +43,7 @@ export const PhaseProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const restart = () => {
     setCurrentPhase(1);
-    BackendService.reset();
+    BackendService.end();
     navigate("/");
   };
 

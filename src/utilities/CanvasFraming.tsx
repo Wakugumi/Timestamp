@@ -183,13 +183,11 @@ export default class CanvasFraming {
    * Waits for all renders has been settled then destroy entire object and its canvas
    */
   public async dispose(): Promise<boolean | void> {
-    return await new Promise(async (resolve, reject) => {
-      try {
-        resolve(await this.fabricCanvas.dispose());
-      } catch (error) {
-        reject(error);
-      }
-    });
+    try {
+      return Promise.resolve(await this.fabricCanvas.dispose());
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 
   /**
@@ -220,7 +218,7 @@ export default class CanvasFraming {
   }
 
   public toObject() {
-    return this.fabricCanvas.toDatalessObject([]);
+    return this.fabricCanvas.toObject([]);
   }
 
   /**
@@ -250,31 +248,31 @@ export default class CanvasFraming {
    * replicate current canvas to its right side
    * @returns {Fabric.Canvas} as clone
    */
-  public async replicateAndExport(width: number, height: number) {
-    const canvas = await this.fabricCanvas.clone([]);
-    canvas.setDimensions({
-      width: width,
-      height: height,
-    });
+  public async replicateAndExport(url: string, width: number, height: number) {
+    return await new Promise<string>((resolve) => {
+      Fabric.FabricImage.fromURL(url).then(async (img) => {
+        const newCanvas = new Fabric.StaticCanvas(undefined, {
+          width: width * 2,
+          height: height,
+        });
 
-    canvas.setDimensions({
-      width: width * 2,
-      height: height,
-    });
-    canvas.renderAll();
+        const original = await img.clone([]);
+        original.set({ left: 0, top: 0 });
+        newCanvas.add(original);
 
-    canvas.getObjects().forEach(async (obj) => {
-      const cloned = await obj.clone([]);
-      cloned.setX(obj.left + width);
-      canvas.add(cloned);
-    });
-    canvas.renderAll();
-    const url = canvas.toDataURL({
-      format: "jpeg",
-      quality: 1.0,
-    } as Fabric.TDataUrlOptions);
+        const replicate = await img.clone([]);
+        replicate.set({ left: width, top: 0 });
+        newCanvas.add(replicate);
+        newCanvas.renderAll();
 
-    return url;
+        resolve(
+          newCanvas.toDataURL({
+            format: "jpeg",
+            quality: 1.0,
+          } as Fabric.TDataUrlOptions),
+        );
+      });
+    });
   }
 
   /**

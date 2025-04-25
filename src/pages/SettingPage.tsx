@@ -1,6 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
-import { Camera } from "web-gphoto2";
-import { useNavigate } from "react-router";
+import { useState } from "react";
 import CameraPreview from "../components/CameraPreview";
 import Button from "../components/Button";
 import BackendService from "../services/BackendService";
@@ -17,7 +15,6 @@ enum State {
 }
 
 export default function SettingPage() {
-  const navigate = useNavigate();
   const [logState, setLogState] = useState<Log[]>([]);
   const [active, setActive] = useState<boolean>(false);
   const [preview, setPreview] = useState<boolean>(false);

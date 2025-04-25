@@ -2,12 +2,8 @@ import LoggerService from "./LoggerService";
 import { DeviceError, ElectronError } from "../helpers/AppError";
 import IPCResponse from "../interfaces/IPCResponse";
 import PaymentCallback from "../interfaces/PaymentCallback";
-import { FabricObject } from "fabric";
 import Frame from "../interfaces/Frame";
-
-interface SessionStartResponse {
-  phase: number;
-}
+import ISessionState from "../interfaces/SessionState";
 
 /**
  * Set of functions to invoke processes in backend runtime
@@ -17,12 +13,12 @@ class BackendService {
   /** To be calld on beginning of a session
    *  @return {Promise<void | number>} if a interrupted phase happens before the component subtree mounts, returns the number of that phase
    */
-  public static async start(): Promise<void | number> {
-    await window.electron
-      .invoke("session/start")
-      .then((response: IPCResponse<SessionStartResponse>) => {
-        response = new IPCResponse<SessionStartResponse>(response);
-        return response.data?.phase;
+  public static async start(): Promise<ISessionState | any> {
+    return await window.electron
+      .invoke("session/begin")
+      .then((response: IPCResponse<ISessionState>) => {
+        response = new IPCResponse<ISessionState>(response);
+        return response.data;
       })
       .catch((error) => {
         throw error;
@@ -59,7 +55,7 @@ class BackendService {
       throw new ElectronError("Electron backend is not exposed");
     }
 
-    await window.electron.invoke("session/next");
+    await window.electron.invoke("session/proceed");
   }
 
   /**
@@ -113,7 +109,7 @@ class BackendService {
 
   public static async getCaptures() {
     return await window.electron
-      ?.invoke("session/get")
+      ?.invoke("media/captures")
       .then((response: IPCResponse<object>) => {
         response = new IPCResponse<object>(response);
         if (response.OK) return response.data;
@@ -129,7 +125,7 @@ class BackendService {
    * @param {number} count number of captures to be uploaded
    * @returns {string} view page url
    */
-  public static async process(count: number, urls: string[]) {
+  public static async finalize(count: number, urls: string[]) {
     const obj = JSON.parse(
       JSON.stringify({
         count: count as number,
@@ -138,7 +134,7 @@ class BackendService {
     );
     console.log(obj);
     return await window.electron
-      ?.invoke("session/process", obj)
+      ?.invoke("session/finalize", obj)
       .then((response: IPCResponse<string>) => {
         response = new IPCResponse<string>(response);
         return response.data;
@@ -152,9 +148,9 @@ class BackendService {
    * Reset session, clean up capture files and media, set all indexes to initial value
    * @returns {Promise<string | void>} Returns status message when resolved, otherwise throw error
    */
-  public static async reset(): Promise<string | void> {
+  public static async end(): Promise<string | void> {
     return await window.electron
-      ?.invoke("session/reset")
+      ?.invoke("session/end")
       .then((response: IPCResponse<object>) => {
         response = new IPCResponse<object>(response);
         if (response.OK) return response.message;
@@ -167,7 +163,7 @@ class BackendService {
   }
 
   public static async saveCanvas(url: string): Promise<void> {
-    return await window.electron?.invoke("media/save", url);
+    return await window.electron?.invoke("media/canvas", url);
   }
 
   public static async print(
@@ -182,20 +178,24 @@ class BackendService {
     });
   }
 
-  public static sendMotion(dataUrl: string) {
+  public static saveMotion(dataUrl: string) {
     window.electron?.invoke("media/motion", dataUrl);
   }
 
   public static async sendPayment(payment: PaymentCallback) {
-    await window.electron?.invoke("session/payment", payment);
+    await window.electron?.invoke("session/state/payment", payment);
   }
 
   public static async sendFrame(frame: Frame) {
-    await window.electron?.invoke("session/frame", frame);
+    await window.electron?.invoke("session/state/frame", frame);
   }
 
   public static async sendCanvas(canvas: string) {
-    await window.electron?.invoke("session/canvas", canvas);
+    await window.electron?.invoke("session/state/canvas", canvas);
+  }
+
+  public static async sendPictures(sources: string[]) {
+    await window.electron?.invoke("session/state/pictures", sources);
   }
 }
 

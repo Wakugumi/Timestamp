@@ -1,4 +1,4 @@
-import { filters, TMatColorMatrix } from "fabric";
+import { TMatColorMatrix } from "fabric";
 
 type Blend = {
   color: string; // hexadecimal;

@@ -18,7 +18,7 @@ import BackendService from "../services/BackendService";
  * @property {PaymentCallback} payment - current state of payment in this cycle
  * @property {(payment: PaymentCallback) => void} setPayment - setter function to set payment state
  */
-interface DataContextValue<T extends string | number | object> {
+interface DataContextValue<T extends string | number | object | null> {
   data: T;
   setData: (value: T) => void;
   frame: Frame | null;
@@ -27,7 +27,7 @@ interface DataContextValue<T extends string | number | object> {
   setPayment: (payment: PaymentCallback) => void;
   quantity: number;
   setQuantity: (qty: number) => void;
-  canvas: string;
+  canvas: string | null;
   saveCanvas: (canvasState: string) => void;
   scaleFactor: number;
   setScaleFactor: (factor: number) => void;
@@ -40,7 +40,9 @@ interface DataContextValue<T extends string | number | object> {
 }
 
 /** @type {React.Context<DataContextValue<any> | undefined>} */
-const DataContext = createContext<DataContextValue<any> | undefined>(undefined);
+const DataContext = createContext<
+  DataContextValue<string | number | object | null> | undefined
+>(undefined);
 
 /**
  * Provides context to share data across childrens
@@ -52,11 +54,11 @@ const DataContext = createContext<DataContextValue<any> | undefined>(undefined);
 export const DataProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<string | number | object | null>(null);
   const [frame, setFrame] = useState<Frame | null>(null);
   const [payment, setPayment] = useState<PaymentCallback | null>(null);
   const [quantity, setQuantity] = useState<number>(0);
-  const [canvas, saveCanvas] = useState<string>("");
+  const [canvas, saveCanvas] = useState<string | null>("");
   const [scaleFactor, setScaleFactor] = useState<number>(1);
   const [pictures, setPictures] = useState<string[]>([]);
   const originalHeight = useRef<number>(1000);
@@ -70,7 +72,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
     setPayment(null);
     setQuantity(0);
     setScaleFactor(1);
-    saveCanvas("");
+    saveCanvas(null);
     setPictures([]);
     originalHeight.current = 1000;
     originalWidth.current = 1000;
@@ -116,8 +118,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
  *
  * @throws {Error} Throws error if used in a component that are not in a DataProvider
  * @returns {DataContextValue}
+ * @ts-ignore: I don't like the "use" thing for this
  */
-export const globalData = (): DataContextValue<any> => {
+export const globalData = (): DataContextValue<
+  string | number | object | null
+> => {
   const context = useContext(DataContext);
   if (!context)
     throw new Error("globalData must be used within a DataProvider");

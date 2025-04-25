@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import LoadingAnimation from "../components/LoadingAnimation";
-import { useNavigate } from "react-router";
 import { usePhase } from "../contexts/PhaseContext";
 import BackendService from "../services/BackendService";
 import { AppError } from "../helpers/AppError";
@@ -20,12 +19,10 @@ enum PageState {
  */
 export default function PhaseOnePage() {
   const [errorState, setErrorState] = useState<AppError | null>(null);
-  const [loadingState, setLoadingState] = useState<string | null>(null);
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [state, setState] = useState<PageState>(PageState.LOADING);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const phaseContext = usePhase();
-  const navigate = useNavigate();
   const [idle, setIdle] = useState<boolean>(false);
   const idleMessage = useIdleTimer(10 * 1000, idle);
 
@@ -43,16 +40,10 @@ export default function PhaseOnePage() {
 
   /** Centralized setups **/
   const _setup = async () => {
-    try {
-      setState(PageState.LOADING);
-      setLoadingState("We're checking our camera");
-      await _cameraSetup();
+    setState(PageState.LOADING);
+    await _cameraSetup();
 
-      setLoadingState("We're preparing our booth for use");
-      await _boothSetup();
-    } catch (error) {
-      throw error;
-    }
+    await _boothSetup();
   };
 
   // Handle cleaning socket

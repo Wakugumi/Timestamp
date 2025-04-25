@@ -6,6 +6,7 @@ import { FilterPreset } from "../interfaces/ImageFilter.tsx";
 import ThemeManager from "./ThemeManager";
 import { DeviceError, NetworkError } from "../helpers/AppError";
 import BackendService from "./BackendService.tsx";
+import ISessionState from "../interfaces/SessionState.ts";
 
 type BoothInitializeResponse = {
   booth: Booth;
@@ -69,7 +70,7 @@ export default class BoothManager {
     this.status = status;
   }
 
-  public static async boot(): Promise<number | void> {
+  public static async boot(): Promise<ISessionState> {
     await api
       .get<BoothInitializeResponse>("/booths/init", {
         headers: {
@@ -79,6 +80,7 @@ export default class BoothManager {
       .then((response) => {
         this.boothInstance = response.data.booth;
         this.theme = response.data.theme;
+        ThemeManager.update(JSON.parse(response.data.theme.config));
       })
       .catch((error: AxiosError) => {
         throw new NetworkError(
@@ -87,9 +89,13 @@ export default class BoothManager {
         );
       });
 
-    console.log(JSON.parse(this.theme.config));
-    await ThemeManager.update(JSON.parse(this.theme.config));
-    return await BackendService.start();
+    return await BackendService.start()
+      .then((value) => {
+        return value;
+      })
+      .catch((error) => {
+        throw new DeviceError("Error booting, calling start backend, " + error);
+      });
   }
 
   /**

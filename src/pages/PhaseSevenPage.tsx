@@ -1,13 +1,14 @@
-import { useRef, useState, useEffect, useMemo } from "react";
+import { useRef, useState, useEffect } from "react";
 import { globalData } from "../contexts/DataContext";
 import Page from "../components/Page";
 import CanvasFraming from "../utilities/CanvasFraming";
 import Frame from "../interfaces/Frame";
 import BackendService from "../services/BackendService";
-import { FilterPreset, ImageFilter } from "../interfaces/ImageFilter";
+import { FilterPreset } from "../interfaces/ImageFilter";
 import ImageFilterService from "../services/ImageFilterService";
 import Button from "../components/Button.tsx";
 import { usePhase } from "../contexts/PhaseContext.tsx";
+import LoggerService from "../services/LoggerService.tsx";
 
 enum State {
   LOADING,
@@ -92,17 +93,33 @@ export default function PhaseSevenPage() {
 
   const handleSave = async () => {
     const img = new Image();
-    img.src = data.frame?.url!;
+    if (!data.frame?.url) {
+      LoggerService.error(
+        "Data for frame url is empty when saving attempting to save current canvas",
+      );
+      setState(State.ERROR);
+    }
+    img.src = data.frame?.url as string;
     img.onload = async () => {
       const exports = (await Canvas.current?.export(
         img.naturalWidth,
         img.naturalHeight,
       )) as string;
       await BackendService.saveCanvas(exports);
-      await BackendService.print(exports, data.quantity, data.frame?.split!);
+
+      const printedExports = await Canvas.current?.replicateAndExport(
+        exports,
+        img.naturalWidth,
+        img.naturalHeight,
+      );
+      await BackendService.print(
+        printedExports as string,
+        data.quantity,
+        data.frame?.split as boolean,
+      );
     };
 
-    data.saveCanvas(Canvas.current?.serialize()!);
+    data.saveCanvas(Canvas.current?.serialize() as string);
 
     phase?.next();
   };

@@ -19,6 +19,7 @@ import PhaseSixPage from "./pages/PhaseSixPage.tsx";
 import PhaseSevenPage from "./pages/PhaseSevenPage.tsx";
 import PhaseEightPage from "./pages/PhaseEightPage.tsx";
 import ThemeManager from "./services/ThemeManager.tsx";
+import { AppInitiator } from "./helpers/AppInitiators.tsx";
 
 enum State {
   LOADING = 0,
@@ -33,70 +34,52 @@ function App() {
 
   useEffect(() => {
     if (state === State.LOADING) {
-      (async () => {
-        try {
-          const savedPhase = await BoothManager.boot();
-          if (typeof savedPhase === "number") BoothManager.reload(savedPhase!);
-          setState(State.RUNNING);
-        } catch (error) {
-          LoggerService.error(error as string);
-          setError(error as Error);
-          setState(State.ERROR);
-        }
-      })();
     }
   }, [state]);
 
   if (state === State.ERROR) throw new Error(error?.message);
 
-  if (state === State.RUNNING)
-    return (
-      <>
-        <div
-          className="min-h-dvh max-h-dvh bg-background font-work"
-          style={{
-            backgroundImage: `url("${ThemeManager.getUrl()}")`,
-            backgroundSize: "cover",
-          }}
-        >
-          <DataProvider>
-            <PopupProvider>
-              <Popup />
-              <BrowserRouter>
-                <PhaseProvider>
-                  <Routes>
-                    <Route path="/" element={<WelcomePage />} />
-                    <Route path="/setting" element={<SettingPage />} />
-                    <Route
-                      path="/phase1"
-                      element={
-                        <ProtectedRoute phaseNumber={1}>
-                          <PhaseOnePage />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/phase2"
-                      element={
-                        <ProtectedRoute phaseNumber={2}>
-                          <PhaseTwoPage />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route path="/phase3" element={<PhaseThreePage />} />
-                    <Route path="/phase4" element={<PhaseFourPage />} />
-                    <Route path="/phase5" element={<PhaseFivePage />} />
-                    <Route path="/phase6" element={<PhaseSixPage />} />
-                    <Route path="/phase7" element={<PhaseSevenPage />} />
-                    <Route path="/phase8" element={<PhaseEightPage />} />
-                  </Routes>
-                </PhaseProvider>
-              </BrowserRouter>
-            </PopupProvider>
-          </DataProvider>
-        </div>
-      </>
-    );
+  return (
+    <>
+      <DataProvider>
+        <PopupProvider>
+          <Popup />
+          <BrowserRouter>
+            <PhaseProvider>
+              <AppInitiator>
+                <Routes>
+                  <Route path="/" element={<WelcomePage />} />
+                  <Route path="/setting" element={<SettingPage />} />
+                  <Route
+                    path="/phase1"
+                    element={
+                      <ProtectedRoute phaseNumber={1}>
+                        <PhaseOnePage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/phase2"
+                    element={
+                      <ProtectedRoute phaseNumber={2}>
+                        <PhaseTwoPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="/phase3" element={<PhaseThreePage />} />
+                  <Route path="/phase4" element={<PhaseFourPage />} />
+                  <Route path="/phase5" element={<PhaseFivePage />} />
+                  <Route path="/phase6" element={<PhaseSixPage />} />
+                  <Route path="/phase7" element={<PhaseSevenPage />} />
+                  <Route path="/phase8" element={<PhaseEightPage />} />
+                </Routes>
+              </AppInitiator>
+            </PhaseProvider>
+          </BrowserRouter>
+        </PopupProvider>
+      </DataProvider>
+    </>
+  );
 }
 
 export default App;

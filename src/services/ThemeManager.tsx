@@ -1,7 +1,6 @@
 import { NetworkError } from "../helpers/AppError";
-import Frame from "../interfaces/Frame";
 import Theme from "../interfaces/Theme";
-import { colorGenerator, applyColors } from "../utilities/colorGenerator";
+import { applyColors } from "../utilities/colorGenerator";
 import APIService from "./APIService";
 import BoothManager from "./BoothManager";
 
@@ -11,9 +10,8 @@ export default class ThemeManager {
   /**
    * Updates global CSS variables based on the static Theme instance in BoothManager
    * Extract colors from image given from URL provided by BoothManager in Theme instance
-   * @returns {Promise<void>}
    */
-  public static async update(scheme: Record<string, string>) {
+  public static update(scheme: Record<string, string>) {
     applyColors(scheme);
   }
 

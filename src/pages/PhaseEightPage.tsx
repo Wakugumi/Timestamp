@@ -24,15 +24,15 @@ export default function PhaseEightPage() {
   const phase = usePhase();
 
   const handleFinish = () => {
-    BackendService.reset();
+    BackendService.end();
     phase?.restart();
   };
-  const _ = useIdleTimer(10000, idle, handleFinish);
+  useIdleTimer(60000, idle, handleFinish);
 
   useEffect(() => {
     if (state === State.LOADING)
       (async () => {
-        const resp = await BackendService.process(
+        const resp = await BackendService.finalize(
           data.pictures.length + 1,
           data.pictures,
         );

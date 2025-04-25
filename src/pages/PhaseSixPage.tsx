@@ -46,7 +46,6 @@ export default function PhaseSixPage() {
   const phase = usePhase();
 
   useEffect(() => {
-    console.info("current state", state);
     if (frame === null || frame === undefined) {
       setErrorMessage("Frame object is null");
       setState(State.ERROR);
@@ -95,7 +94,7 @@ export default function PhaseSixPage() {
   }, []);
 
   useEffect(() => {
-    setScaleFactor(Canvas.current?.scalingFactor!);
+    setScaleFactor(Canvas.current?.scalingFactor as number);
   }, [Canvas.current]);
 
   const handlePick = (index: number) => {
@@ -147,7 +146,7 @@ export default function PhaseSixPage() {
   };
 
   const handleSubmit = () => {
-    setPictures(slots.map((slot) => slot.item?.src!));
+    setPictures(slots.map((slot) => slot.item?.src as string));
     phase.next();
   };
 

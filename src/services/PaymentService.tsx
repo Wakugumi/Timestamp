@@ -1,6 +1,5 @@
 import axios from "axios";
 import { NetworkError } from "../helpers/AppError";
-import BoothManager from "./BoothManager";
 import LoggerService from "./LoggerService";
 
 const api = axios.create({

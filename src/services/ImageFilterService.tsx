@@ -1,5 +1,5 @@
 import { FabricImage, filters } from "fabric";
-import { FilterPreset, ImageFilter } from "../interfaces/ImageFilter";
+import { FilterPreset } from "../interfaces/ImageFilter";
 import APIService from "./APIService";
 
 export default class ImageFilterService {
@@ -27,101 +27,93 @@ export default class ImageFilterService {
     });
 
     // Color matrix preset
-    preset.preset.sepia ? filter.subFilters.push(new filters.Sepia()) : null;
-    preset.preset.brownie
-      ? filter.subFilters.push(new filters.Brownie())
-      : null;
-    preset.preset.blackwhite
-      ? filter.subFilters.push(new filters.BlackWhite())
-      : null;
-    preset.preset.vintage
-      ? filter.subFilters.push(new filters.Vintage())
-      : null;
-    preset.preset.polaroid
-      ? filter.subFilters.push(new filters.Polaroid())
-      : null;
-    preset.preset.kodachrome
-      ? filter.subFilters.push(new filters.Kodachrome())
-      : null;
-    preset.preset.technicolor
-      ? filter.subFilters.push(new filters.Technicolor())
-      : null;
-
-    preset.preset.pixelate
-      ? filter.subFilters.push(
-          new filters.Pixelate({ blocksize: preset.preset.pixelate! }),
-        )
-      : null;
-    preset.preset.noise
-      ? filter.subFilters.push(
-          new filters.Noise({ noise: preset.preset.noise! }),
-        )
-      : null;
-    preset.preset.saturation
-      ? filter.subFilters.push(
-          new filters.Saturation({ saturation: preset.preset.saturation! }),
-        )
-      : null;
-
-    preset.preset.vibrance
-      ? filter.subFilters.push(
-          new filters.Vibrance({ vibrance: preset.preset.vibrance! }),
-        )
-      : null;
-
-    preset.preset.hueRotation
-      ? filter.subFilters.push(
-          new filters.HueRotation({
-            rotation: preset.preset.hueRotation.rotation,
-            matrix: preset.preset.hueRotation.matrix,
+    if (preset.preset.sepia) {
+      filter.subFilters.push(new filters.Sepia());
+    }
+    if (preset.preset.brownie) {
+      filter.subFilters.push(new filters.Brownie());
+    }
+    if (preset.preset.blackwhite) {
+      filter.subFilters.push(new filters.BlackWhite());
+    }
+    if (preset.preset.vintage) {
+      filter.subFilters.push(new filters.Vintage());
+    }
+    if (preset.preset.polaroid) {
+      filter.subFilters.push(new filters.Polaroid());
+    }
+    if (preset.preset.kodachrome) {
+      filter.subFilters.push(new filters.Kodachrome());
+    }
+    if (preset.preset.technicolor) {
+      filter.subFilters.push(new filters.Technicolor());
+    }
+    if (preset.preset.pixelate) {
+      filter.subFilters.push(
+        new filters.Pixelate({ blocksize: preset.preset.pixelate }),
+      );
+    }
+    if (preset.preset.noise) {
+      filter.subFilters.push(new filters.Noise({ noise: preset.preset.noise }));
+    }
+    if (preset.preset.saturation) {
+      filter.subFilters.push(
+        new filters.Saturation({ saturation: preset.preset.saturation }),
+      );
+    }
+    if (preset.preset.vibrance) {
+      filter.subFilters.push(
+        new filters.Vibrance({ vibrance: preset.preset.vibrance }),
+      );
+    }
+    if (preset.preset.hueRotation) {
+      filter.subFilters.push(
+        new filters.HueRotation({
+          rotation: preset.preset.hueRotation.rotation,
+          matrix: preset.preset.hueRotation.matrix,
+        }),
+      );
+    }
+    if (preset.preset.gamma) {
+      filter.subFilters.push(
+        new filters.Gamma({ gamma: preset.preset.gamma.gamma }),
+      );
+    }
+    if (preset.preset.grayscale) {
+      filter.subFilters.push(new filters.Grayscale());
+    }
+    if (preset.preset.colorMatrix) {
+      filter.subFilters.push(
+        new filters.ColorMatrix({ matrix: preset.preset.colorMatrix }),
+      );
+    }
+    if (preset.preset.blur) {
+      filter.subFilters.push(
+        new filters.Blur({
+          blur: preset.preset.blur.blur,
+          aspectRatio: preset.preset.blur.aspectRatio,
+          horizontal: preset.preset.blur.horizontal,
+        }),
+      );
+    }
+    if (preset.preset.contrast) {
+      filter.subFilters.push(
+        new filters.Contrast({
+          contrast: preset.preset.contrast,
+        }),
+      );
+    }
+    if (preset.preset.blend) {
+      preset.preset.blend.forEach((x) => {
+        filter.subFilters.push(
+          new filters.BlendColor({
+            alpha: x.alpha,
+            mode: x.mode,
+            color: x.color,
           }),
-        )
-      : null;
-
-    preset.preset.gamma
-      ? filter.subFilters.push(
-          new filters.Gamma({ gamma: preset.preset.gamma?.gamma! }),
-        )
-      : null;
-
-    preset.preset.grayscale
-      ? filter.subFilters.push(new filters.Grayscale())
-      : null;
-
-    preset.preset.colorMatrix
-      ? filter.subFilters.push(
-          new filters.ColorMatrix({ matrix: preset.preset.colorMatrix! }),
-        )
-      : null;
-    preset.preset.blur
-      ? filter.subFilters.push(
-          new filters.Blur({
-            blur: preset.preset.blur.blur!,
-            aspectRatio: preset.preset.blur.aspectRatio!,
-            horizontal: preset.preset.blur.horizontal!,
-          }),
-        )
-      : null;
-
-    preset.preset.contrast
-      ? filter.subFilters.push(
-          new filters.Contrast({
-            contrast: preset.preset.contrast,
-          }),
-        )
-      : null;
-
-    preset.preset.blend
-      ? preset.preset.blend.forEach((x, index) => {
-          filter.subFilters.push(
-            new filters.BlendColor({
-              alpha: x.alpha,
-              mode: x.mode,
-              color: x.color,
-            }),
-          );
-        })
-      : null;
+        );
+      });
+    }
 
     console.log(filter);
 

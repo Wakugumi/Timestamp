@@ -1,11 +1,8 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import Icon from "../components/Icon";
-import LoadingAnimation from "../components/LoadingAnimation";
 import "./PhaseFivePage.css";
 import BackendService from "../services/BackendService";
-import CameraPreview from "../components/CameraPreview";
 import { usePhase } from "../contexts/PhaseContext";
-import { useNavigate } from "react-router";
 import ErrorPage from "../components/ErrorPage";
 import Page from "../components/Page";
 import { globalData } from "../contexts/DataContext";
@@ -18,11 +15,11 @@ enum State {
   ERROR,
 }
 
-export default function PhaseFivePage({}) {
+export default function PhaseFivePage() {
   const { frame } = globalData();
   const INTERVAL = 5;
-  const DURATION = INTERVAL * frame?.count!;
-  let STAGES = [];
+  const DURATION = INTERVAL * (frame?.count ? frame.count : 1);
+  const STAGES = [];
   for (let i = 1; i <= DURATION / INTERVAL; i++) STAGES.push(i);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -62,7 +59,7 @@ export default function PhaseFivePage({}) {
   };
 
   useEffect(() => {
-    const ratio = data.frame?.layouts[0].Width! / width;
+    const ratio = (data.frame?.layouts[0].Width as number) / width;
     setWidth(width * ratio);
 
     if (localStorage.getItem("hasUserInteracted") === "true") {

@@ -1,6 +1,5 @@
 import Page from "../components/Page";
 import { usePhase } from "../contexts/PhaseContext";
-import { useNavigate } from "react-router";
 import Button from "../components/Button";
 
 export default function PhaseFourPage() {

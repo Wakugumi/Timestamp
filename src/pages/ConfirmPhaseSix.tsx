@@ -14,7 +14,7 @@ export default function ConfirmPhaseSix({
   onConfirm,
   onCancel,
 }: ConfirmPhaseSixProps) {
-  const { frame, canvas, pictures } = globalData();
+  const { frame, canvas } = globalData();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 

@@ -15,14 +15,12 @@ export default function Liveview({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
 
-  const [isStream, setIsStream] = useState(false);
-
   useEffect(() => {
     if (!wsRef.current && !pause) _stream();
 
     let interval = setInterval(() => {
       if (!pause)
-        BackendService.sendMotion(
+        BackendService.saveMotion(
           canvasRef.current?.toDataURL("image/jpeg", 0.5)!,
         );
     }, 500);
@@ -55,7 +53,6 @@ export default function Liveview({
     });
 
     window.electron?.onStream((chunk: Uint8Array) => {
-      setIsStream(true);
       buffer.push(chunk);
 
       if (buffer.length > 10) buffer.shift();
@@ -83,7 +80,6 @@ export default function Liveview({
     wsRef.current.onclose = () => {
       console.log("socket disconnected");
       wsRef.current = null;
-      setIsStream(false);
     };
   };
 

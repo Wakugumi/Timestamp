@@ -1,14 +1,11 @@
-import { useLocation, useNavigate, useParams } from "react-router";
 import useScript from "../hooks/useScript";
 import BoothManager from "../services/BoothManager";
 import { useEffect, useState } from "react";
-import Frame from "../interfaces/Frame";
 import Page from "../components/Page";
 import PaymentService from "../services/PaymentService";
 import LoadingAnimation from "../components/LoadingAnimation";
 import "./PhaseThreePage.scss";
 import LoggerService from "../services/LoggerService";
-import { useSearchParams } from "react-router";
 import PaymentCallback from "../interfaces/PaymentCallback";
 import BackendService from "../services/BackendService";
 import Button from "../components/Button";
@@ -16,6 +13,7 @@ import { usePopup } from "../contexts/PopupContext";
 import { ConfirmPopup } from "../components/Popup";
 import { usePhase } from "../contexts/PhaseContext";
 import { globalData } from "../contexts/DataContext";
+import ErrorPage from "../components/ErrorPage";
 
 enum State {
   STARTUP = 0,
@@ -32,9 +30,7 @@ enum State {
  */
 export default function PhaseThreePage() {
   const { frame, quantity, setPayment } = globalData();
-  const navigate = useNavigate();
   const phase = usePhase();
-  const [searchParams, setSearchParams] = useSearchParams();
   const { showPopup, hidePopup } = usePopup();
   const [state, setState] = useState<State>(State.STARTUP);
   const [token, setToken] = useState<string>("");
@@ -96,7 +92,10 @@ export default function PhaseThreePage() {
           setState(State.SUCCESS);
         },
         onPending: function (result: PaymentCallback) {
-          LoggerService.info("A pending transaction process is closed by user");
+          LoggerService.info(
+            "A pending transaction process is closed by user" +
+              result.toString(),
+          );
           setState(State.ABORT);
         },
         onError: function (result: PaymentCallback) {
@@ -202,4 +201,7 @@ export default function PhaseThreePage() {
         </Page>
       </>
     );
+
+  if (state === State.ERROR)
+    return <ErrorPage message={error} code="PAYMENT" />;
 }
