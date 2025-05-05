@@ -110,16 +110,12 @@ export default function PhaseFivePage() {
       </>
     );
 
-  if (state === State.PROCESSING) {
-    return <Page className="bg-white"> </Page>;
-  }
-
-  if (state === State.RUNNING)
+  if (state === State.RUNNING || state === State.PROCESSING)
     return (
       <>
         <div
-          className="min-h-lvh max-h-lvh min-w-full overflow-hidden bg-inverse-surface text-inverse-on-surface
-            flex flex-col justify-evenly items-center p-4 gap-2"
+          className={`min-h-lvh max-h-lvh min-w-full overflow-hidden ${state === State.PROCESSING ? "bg-white" : "bg-inverse-surface"} text-inverse-on-surface
+            flex flex-col justify-evenly items-center p-4 gap-2`}
         >
           <div
             className="flex items-center justify-items-center gap-4 p-4 
