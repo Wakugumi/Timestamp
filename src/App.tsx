@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router";
+import { BrowserRouter, Routes, Route, HashRouter } from "react-router";
 import "./App.css";
 import WelcomePage from "./pages/WelcomePage";
 import PhaseOnePage from "./pages/PhaseOnePage";
@@ -21,7 +21,7 @@ function App() {
       <DataProvider>
         <PopupProvider>
           <Popup />
-          <BrowserRouter>
+          <HashRouter>
             <PhaseProvider>
               <AppInitiator>
                 <Routes>
@@ -38,7 +38,7 @@ function App() {
                 </Routes>
               </AppInitiator>
             </PhaseProvider>
-          </BrowserRouter>
+          </HashRouter>
         </PopupProvider>
       </DataProvider>
     </>
