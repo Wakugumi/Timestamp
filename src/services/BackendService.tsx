@@ -149,6 +149,7 @@ class BackendService {
    * @returns {Promise<string | void>} Returns status message when resolved, otherwise throw error
    */
   public static async end(): Promise<string | void> {
+    await window.electron?.invoke("main/update");
     return await window.electron
       ?.invoke("session/end")
       .then((response: IPCResponse<object>) => {

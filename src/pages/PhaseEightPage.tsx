@@ -8,6 +8,7 @@ import LoadingAnimation from "../components/LoadingAnimation";
 import useIdleTimer from "../hooks/useIdleTimer";
 import Button from "../components/Button";
 import BoothManager from "../services/BoothManager";
+import { usePhase } from "../contexts/PhaseContext";
 
 enum State {
   LOADING,
@@ -23,8 +24,11 @@ export default function PhaseEightPage() {
   const [idle, setIdle] = useState(false);
   const data = globalData();
 
+  const phase = usePhase();
   const handleFinish = async () => {
     await BoothManager.end();
+
+    phase.restart();
   };
   useIdleTimer(60000, idle, handleFinish);
 
