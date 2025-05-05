@@ -8,6 +8,7 @@ export default defineConfig({
   build: {
     target: "esnext", // Required for WebAssembly support in modern browsers
     assetsInlineLimit: 0, // Ensure `.wasm` files are not inlined
+    outDir: "../dist",
   },
   mode: "development",
   resolve: {},
