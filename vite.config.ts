@@ -5,6 +5,7 @@ import topLevelAwait from "vite-plugin-top-level-await";
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react(), wasm(), topLevelAwait()],
+  base: "./",
   build: {
     target: "esnext", // Required for WebAssembly support in modern browsers
     assetsInlineLimit: 0, // Ensure `.wasm` files are not inlined
