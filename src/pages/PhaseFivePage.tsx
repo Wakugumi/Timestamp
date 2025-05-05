@@ -110,37 +110,36 @@ export default function PhaseFivePage() {
       </>
     );
 
-  if (state === State.RUNNING || state === State.PROCESSING)
-    return (
-      <>
-        <div
-          className={`min-h-lvh max-h-lvh min-w-full overflow-hidden ${state === State.PROCESSING ? "bg-white" : "bg-inverse-surface"} text-inverse-on-surface
+  return (
+    <>
+      <div
+        className={`min-h-lvh max-h-lvh min-w-full overflow-hidden ${state === State.PROCESSING ? "bg-white" : "bg-inverse-surface"} text-inverse-on-surface
             flex flex-col justify-evenly items-center p-4 gap-2`}
-        >
-          <div
-            className="flex items-center justify-items-center gap-4 p-4 
+      >
+        <div
+          className="flex items-center justify-items-center gap-4 p-4 
                 rounded text-inverse-on-surface text-4xl font-bold"
-          >
-            <span className="">{timer}</span>
-            <Icon type="camera"></Icon>
-          </div>
-
-          <div className="flex flex-col items-center justify-center gap-4">
-            <Liveview pause={pause} />
-            <div className="flex items-center justify-evenly">
-              {STAGES.map((index) => (
-                <div
-                  className={`rounded-full px-8 py-4 text-white ${index === stage ? `border shadow-inset` : ""}`}
-                  key={index}
-                >
-                  {index}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <audio ref={audioRef} src="./assets/beep.mp3" />
+        >
+          <span className="">{timer}</span>
+          <Icon type="camera"></Icon>
         </div>
-      </>
-    );
+
+        <div className="flex flex-col items-center justify-center gap-4">
+          <Liveview pause={pause} />
+          <div className="flex items-center justify-evenly">
+            {STAGES.map((index) => (
+              <div
+                className={`rounded-full px-8 py-4 text-white ${index === stage ? `border shadow-inset` : ""}`}
+                key={index}
+              >
+                {index}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <audio ref={audioRef} src="./assets/beep.mp3" />
+      </div>
+    </>
+  );
 }
