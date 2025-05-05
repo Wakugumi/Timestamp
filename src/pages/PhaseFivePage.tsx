@@ -143,7 +143,7 @@ export default function PhaseFivePage() {
             </div>
           </div>
 
-          <audio ref={audioRef} src="/assets/beep.mp3" />
+          <audio ref={audioRef} src="./assets/beep.mp3" />
         </div>
       </>
     );
