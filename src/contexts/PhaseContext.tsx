@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState } from "react";
 import { useNavigate } from "react-router";
 import BackendService from "../services/BackendService";
+import { globalData } from "./DataContext";
 
 /**
  * @typedef {Object} PhaseContextValue
@@ -29,6 +30,7 @@ export const PhaseProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [currentPhase, setCurrentPhase] = useState(0);
   const navigate = useNavigate();
+  const data = globalData();
 
   const next = () => {
     navigate(`/phase${currentPhase + 1}`);
@@ -43,6 +45,7 @@ export const PhaseProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const restart = () => {
     setCurrentPhase(0);
+    data.reset();
     BackendService.end();
     navigate("/");
   };

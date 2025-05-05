@@ -39,6 +39,7 @@ export default function PhaseFivePage() {
    */
   const _capture = async (): Promise<void> => {
     setPause(true);
+    setState(State.PROCESSING);
     await setTimeout(() => {}, 1000); // This is VERY IMPORTANT to let camera stop stream
     try {
       canvasRef.current?.classList.add("capturing");
@@ -88,7 +89,6 @@ export default function PhaseFivePage() {
         setElapsed(elapsed + 1);
 
         if ((elapsed + 1) % INTERVAL === 0) {
-          setState(State.PROCESSING);
           await _capture();
           setTimer(INTERVAL);
           setState(State.RUNNING);
