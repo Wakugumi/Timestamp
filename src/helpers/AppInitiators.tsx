@@ -22,7 +22,6 @@ export function AppInitiator({ children }: AppInitiatorProps) {
 
   useEffect(() => {
     if (state === State.LOADING) {
-      console.log("app initating");
       (async () => {
         await BoothManager.boot()
           .then((value) => {
@@ -31,7 +30,12 @@ export function AppInitiator({ children }: AppInitiatorProps) {
             data.saveCanvas(JSON.stringify(value.canvas!));
             data.setPayment(value.payment!);
             data.setPictures(value.pictures!);
-            if (value.phase! > 1) phase?.jumpTo(value.phase!);
+            if (value.phase! > 1) {
+              console.log(
+                "returned phase state is more than one, jumping back...",
+              );
+              phase?.jumpTo(value.phase!);
+            }
             setState(State.RUNNING);
           })
           .catch((error) => {

@@ -77,7 +77,7 @@ export default function SettingPage() {
 
   const _cleanup = async () => {
     setState(State.PROCESSING);
-    await BackendService.resetSession()
+    await BackendService.end()
       .then((response) => {
         log(response as string);
       })

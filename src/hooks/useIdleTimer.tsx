@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { usePhase } from "../contexts/PhaseContext";
+import BoothManager from "../services/BoothManager";
 
 /**
  * @params {timeout} timeout duration in milliseconds;
@@ -10,7 +10,6 @@ const useIdleTimer = (
   isActive: boolean,
   callback?: () => void,
 ): string | null => {
-  const phase = usePhase();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [remaining, setRemaining] = useState<number | null>(null);
   useEffect(() => {
@@ -21,8 +20,8 @@ const useIdleTimer = (
     }
 
     // When IDLE timer runs out, everything called here
-    const handleIdle = () => {
-      if (!callback) phase?.restart();
+    const handleIdle = async () => {
+      if (!callback) await BoothManager.end();
       else callback();
     };
 

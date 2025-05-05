@@ -4,7 +4,7 @@ import { usePhase } from "../contexts/PhaseContext";
 import BackendService from "../services/BackendService";
 import { AppError } from "../helpers/AppError";
 import useIdleTimer from "../hooks/useIdleTimer";
-import Button from "../components/Button";
+import ErrorPage from "../components/ErrorPage";
 
 enum PageState {
   RUNNING,
@@ -30,8 +30,7 @@ export default function PhaseOnePage() {
   const _cameraSetup = async () => {
     console.log("[PhaseOnePage] Camera setup");
     await BackendService.setup();
-    //console.log("[PhaseOnePage] Camera checkup");
-    //await BackendService.checkup();
+    await BackendService.checkup();
     return;
   };
 
@@ -62,8 +61,8 @@ export default function PhaseOnePage() {
 
     newSocket.binaryType = "blob";
 
-    let imageBuffer = [];
-    window.electron?.onStream((chunk) => {
+    let imageBuffer: ArrayBuffer[] = [];
+    window.electron?.onStream((chunk: ArrayBuffer) => {
       if (!canvasRef.current) return;
       const canvas = canvasRef.current.getContext("2d", {
         willReadFrequently: true,
@@ -128,13 +127,14 @@ export default function PhaseOnePage() {
       .catch((error: AppError) => {
         setState(PageState.ERROR);
         setErrorState(error);
+        throw error;
       });
     return () => {
       _cleanSocket();
     };
   }, []);
 
-  const handleProceed = () => {
+  const handleNext = () => {
     _cleanSocket();
     phaseContext.next();
   };
@@ -160,18 +160,11 @@ export default function PhaseOnePage() {
                     {idleMessage}
                   </div>
                 )}
-                <div
-                  className="m-8 p-8 rounded-lg bg-error w-[40vw] h-[60vh] flex
-                  items-end justify-end text-wrap text-on-error text-[4rem] font-bold"
-                >
-                  {errorState?.userMessage}
-                </div>
-                <span
-                  className="px-8 w-[40vw] flex
-                  items-start justify-start text-wrap text-error font-bold"
-                >
-                  Code: {errorState?.code}
-                </span>
+
+                <ErrorPage
+                  code={errorState?.code}
+                  message={errorState?.technicalMessage as string}
+                />
               </>
             )}
           </div>
@@ -180,17 +173,5 @@ export default function PhaseOnePage() {
     );
   }
 
-  return (
-    <>
-      <div className="min-h-dvh max-h-dvh bg-surface-container flex flex-col justify-center items-center gap-12 p-8">
-        <div className="rounded-xl shadow-xl outline outline-primary outline-8 w-fit">
-          <canvas ref={canvasRef} width={"1280"} height={"720"} />
-        </div>
-        <div className="flex gap-4 items-center text-on-surface text-xl">
-          <span>Can you see yourself?</span>
-          <Button onClick={() => handleProceed()}>Yes, I can see myself</Button>
-        </div>
-      </div>
-    </>
-  );
+  if (state === PageState.RUNNING) handleNext();
 }

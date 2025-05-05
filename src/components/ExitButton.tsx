@@ -1,13 +1,14 @@
-import { useNavigate } from "react-router";
 import { usePopup } from "../contexts/PopupContext";
 import Icon from "./Icon";
 import { ConfirmPopup } from "./Popup";
 import { usePhase } from "../contexts/PhaseContext";
+import BoothManager from "../services/BoothManager";
 
 export default function ExitButton() {
   const { showPopup, hidePopup } = usePopup();
   const phase = usePhase();
-  const exit = () => {
+  const exit = async () => {
+    await BoothManager.end();
     phase?.restart();
   };
   const styles =

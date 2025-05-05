@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import Page from "../components/Page";
 import BackendService from "../services/BackendService";
+// @ts-ignore
 import QR from "qrcode";
 import { globalData } from "../contexts/DataContext";
 import LoadingAnimation from "../components/LoadingAnimation";
 import useIdleTimer from "../hooks/useIdleTimer";
-import { usePhase } from "../contexts/PhaseContext";
 import Button from "../components/Button";
+import BoothManager from "../services/BoothManager";
 
 enum State {
   LOADING,
@@ -21,11 +22,9 @@ export default function PhaseEightPage() {
   const qrCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const [idle, setIdle] = useState(false);
   const data = globalData();
-  const phase = usePhase();
 
-  const handleFinish = () => {
-    BackendService.end();
-    phase?.restart();
+  const handleFinish = async () => {
+    await BoothManager.end();
   };
   useIdleTimer(60000, idle, handleFinish);
 
@@ -36,7 +35,7 @@ export default function PhaseEightPage() {
           data.pictures.length + 1,
           data.pictures,
         );
-        setUrl(resp);
+        setUrl(resp as string);
         setState(State.RUNNING);
       })().catch((error) => {
         throw error;

@@ -13,12 +13,12 @@ class BackendService {
   /** To be calld on beginning of a session
    *  @return {Promise<void | number>} if a interrupted phase happens before the component subtree mounts, returns the number of that phase
    */
-  public static async start(): Promise<ISessionState | any> {
+  public static async start(): Promise<ISessionState> {
     return await window.electron
       .invoke("session/begin")
       .then((response: IPCResponse<ISessionState>) => {
         response = new IPCResponse<ISessionState>(response);
-        return response.data;
+        return response.data as ISessionState;
       })
       .catch((error) => {
         throw error;
@@ -72,7 +72,7 @@ class BackendService {
       .then((response: IPCResponse<object>) => {
         response = new IPCResponse<object>(response);
         if (response.OK) return;
-        else {
+        else if (response.ERROR) {
           throw new DeviceError(response.message);
         }
       })
@@ -82,7 +82,7 @@ class BackendService {
   }
 
   public static async paymentCallback() {
-    return window.electron?.on("payment", (queryParams) => {
+    return await window.electron?.on("payment", (queryParams) => {
       return queryParams;
     });
   }
@@ -110,8 +110,8 @@ class BackendService {
   public static async getCaptures() {
     return await window.electron
       ?.invoke("media/captures")
-      .then((response: IPCResponse<object>) => {
-        response = new IPCResponse<object>(response);
+      .then((response: IPCResponse<string[]>) => {
+        response = new IPCResponse<string[]>(response);
         if (response.OK) return response.data;
         else throw new DeviceError(response.message);
       })

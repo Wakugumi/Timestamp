@@ -45,7 +45,7 @@ export default function PhaseSevenPage() {
       setPresets(await ImageFilterService.getFilters());
 
       await canvasFrame.create();
-      await canvasFrame.deserialize(data.canvas);
+      await canvasFrame.deserialize(data.canvas as string);
     })()
       .then(() => {
         setState(State.RUNNING);
@@ -113,7 +113,7 @@ export default function PhaseSevenPage() {
         img.naturalHeight,
       );
       await BackendService.print(
-        printedExports as string,
+        data.frame?.split ? (printedExports as string) : exports,
         data.quantity,
         data.frame?.split as boolean,
       );

@@ -27,13 +27,13 @@ const PhaseContext = createContext<PhaseContextValue | undefined>(undefined);
 export const PhaseProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [currentPhase, setCurrentPhase] = useState(1);
+  const [currentPhase, setCurrentPhase] = useState(0);
   const navigate = useNavigate();
 
   const next = () => {
+    navigate(`/phase${currentPhase + 1}`);
     setCurrentPhase(currentPhase + 1);
     BackendService.sessionNext();
-    navigate(`/phase${currentPhase}`);
   };
 
   const jumpTo = (phase: number) => {
@@ -42,7 +42,7 @@ export const PhaseProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const restart = () => {
-    setCurrentPhase(1);
+    setCurrentPhase(0);
     BackendService.end();
     navigate("/");
   };
@@ -62,8 +62,8 @@ export const PhaseProvider: React.FC<{ children: React.ReactNode }> = ({
  */
 export const usePhase = () => {
   const context = useContext(PhaseContext);
-  //if (!context) {
-  // throw new Error("usePhase must be used within a PhaseProvider");
-  //}
+  if (!context) {
+    throw new Error("usePhase must be used within a PhaseProvider");
+  }
   return context;
 };

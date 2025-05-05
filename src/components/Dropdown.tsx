@@ -55,7 +55,7 @@ const Dropdown = <T extends string | number>({
         <span className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
           ▼
         </span>
-        <style jsx>{`
+        <style>{`
           select::-webkit-scrollbar {
             width: 8px;
           }

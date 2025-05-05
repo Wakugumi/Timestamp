@@ -3,9 +3,11 @@ import APIService from "./APIService";
 import { toUnix } from "../utilities/dateFormatter";
 
 enum Level {
-  INFO,
-  WARN,
   ERROR,
+  WARN,
+  INFO,
+  DEBUG,
+  TRACE,
 }
 
 interface LogEntry {
@@ -69,13 +71,16 @@ class LoggerService {
     })
       .then(() => {})
       .catch((error) => console.error(error));
-
     const consoleMessage = `[${timestamp}] (${level})\nLocation: ${stack}`;
     if (level === Level.ERROR) console.error(consoleMessage, technicalMessage);
     else if (level === Level.WARN)
       console.warn(consoleMessage, technicalMessage);
     else if (level === Level.INFO)
       console.log(consoleMessage, technicalMessage);
+    else if (level === Level.TRACE)
+      console.trace(consoleMessage, technicalMessage);
+    else if (level === Level.DEBUG)
+      console.debug(consoleMessage, technicalMessage);
   }
 
   /**
@@ -116,14 +121,26 @@ class LoggerService {
     return LoggerService.log(Level.ERROR, error, userMessage);
   }
 
-  private static _location(): string {
-    try {
-      const error = new Error();
-      const stackLines = error.stack?.split("\n") || [];
-      return stackLines[4]?.trim() || "Untraceable error";
-    } catch {
-      return "Untraceable error";
-    }
+  /** debug level log */
+  static debug(message: string, ...args: string[]) {
+    const stack = new Error().stack;
+    LoggerService.log(
+      Level.DEBUG,
+      message + args.join(" "),
+      "This is a developer log",
+      stack,
+    );
+  }
+
+  /** for tracing purpose log only */
+  static trace(message: string, ...args: string[]) {
+    const stack = new Error().stack;
+    LoggerService.log(
+      Level.TRACE,
+      message + args.join(" "),
+      "This is a developer log",
+      stack,
+    );
   }
 }
 

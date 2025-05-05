@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   useEffect,
   useRef,
@@ -8,6 +9,7 @@ import {
   ReactNode,
 } from "react";
 import Icon from "./Icon";
+// @ts-ignore
 import Slick from "react-slick";
 
 interface ArrowProps {
@@ -62,7 +64,7 @@ export default function Selector({ children, onSelect }: SelectorProps) {
   if (Children.count(children) <= 0)
     return (
       <>
-        <span className="text-xl">
+        <span className="text-xl mx-auto">
           We have nothing here, try adjust filter again.
         </span>
       </>

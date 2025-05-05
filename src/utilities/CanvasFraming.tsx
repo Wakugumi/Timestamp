@@ -28,11 +28,8 @@ export default class CanvasFraming {
   private canvas: HTMLCanvasElement;
   private frame: Frame;
   private _scalingFactor: number = 1;
+  // @ts-ignore
   private fabricCanvas: Fabric.Canvas;
-  private _group: Fabric.Group = new Fabric.Group([], {
-    selectable: false,
-    evented: false,
-  });
 
   constructor(
     container: HTMLDivElement,

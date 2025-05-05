@@ -1,19 +1,25 @@
 import { useEffect, useState } from "react";
 
-type RadioProps<T extends string | number> = {
-  options: { value: T; label: T }[];
+type RadioProps<
+  TValue extends string | number,
+  TLabel extends string | number,
+> = {
+  options: { value: TValue; label: TLabel }[];
   className?: string;
-  onChange: (value: T) => void;
-  value: T;
+  onChange: (value: TValue) => void;
+  value: any;
 };
 
-export default function Radio<T extends string | number>({
+export default function Radio<
+  TValue extends string | number,
+  TLabel extends string | number,
+>({
   options = [],
   className = "",
   onChange,
   value,
-}: RadioProps<T>) {
-  const [selected, setSelected] = useState<{ value: T; label: T }>({
+}: RadioProps<TValue, TLabel>) {
+  const [selected, setSelected] = useState<{ value: TValue; label: TLabel }>({
     value: value,
     label: value,
   });

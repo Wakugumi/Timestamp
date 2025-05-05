@@ -18,7 +18,7 @@ enum State {
 export default function PhaseFivePage() {
   const { frame } = globalData();
   const INTERVAL = 5;
-  const DURATION = INTERVAL * (frame?.count ? frame.count : 1);
+  const DURATION = INTERVAL * (frame?.count ? frame.count * 2 : 1);
   const STAGES = [];
   for (let i = 1; i <= DURATION / INTERVAL; i++) STAGES.push(i);
 
@@ -110,7 +110,11 @@ export default function PhaseFivePage() {
       </>
     );
 
-  if (state === State.RUNNING || state === State.PROCESSING)
+  if (state === State.PROCESSING) {
+    return <Page className="bg-white"> </Page>;
+  }
+
+  if (state === State.RUNNING)
     return (
       <>
         <div
@@ -125,21 +129,19 @@ export default function PhaseFivePage() {
             <Icon type="camera"></Icon>
           </div>
 
-          {(state === State.RUNNING || state === State.PROCESSING) && (
-            <div className="flex flex-col items-center justify-center gap-4">
-              <Liveview pause={pause} />
-              <div className="flex items-center justify-evenly">
-                {STAGES.map((index) => (
-                  <div
-                    className={`rounded-full px-8 py-4 text-white ${index === stage ? `border shadow-inset` : ""}`}
-                    key={index}
-                  >
-                    {index}
-                  </div>
-                ))}
-              </div>
+          <div className="flex flex-col items-center justify-center gap-4">
+            <Liveview pause={pause} />
+            <div className="flex items-center justify-evenly">
+              {STAGES.map((index) => (
+                <div
+                  className={`rounded-full px-8 py-4 text-white ${index === stage ? `border shadow-inset` : ""}`}
+                  key={index}
+                >
+                  {index}
+                </div>
+              ))}
             </div>
-          )}
+          </div>
 
           <audio ref={audioRef} src="/assets/beep.mp3" />
         </div>

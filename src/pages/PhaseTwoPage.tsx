@@ -66,7 +66,7 @@ function ConfirmPrompt({
   }, []);
 
   useEffect(() => {
-    onQuantity(frame.split ? quantity / 2 : quantity);
+    onQuantity(quantity);
   }, [quantity]);
 
   return (
@@ -105,7 +105,7 @@ function ConfirmPrompt({
             <Radio
               options={options.map((value) => ({
                 value: value,
-                label: `${value} ${value > 1 ? `prints` : `print`}`,
+                label: `${value} ${value > 1 ? `prints` : `print`}` as string,
               }))}
               onChange={(value) => setQuantity(value)}
               value={quantity}
@@ -230,6 +230,7 @@ export default function PhaseTwoPage() {
       originalHeight.current = img.naturalHeight;
       originalWidth.current = img.naturalWidth;
     };
+    //@ts-ignore
     img.onerror = (event, src, line, col, error) => {
       setState(State.ERROR);
       setError(error!);

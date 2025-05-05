@@ -18,7 +18,7 @@ type BoothInitializeResponse = {
 const api = axios.create({
   baseURL: "https://timestamp.fun/api",
   headers: {
-    Token: import.meta.env.VITE_BOOTH_TOKEN,
+    Token: window.config.BOOTH_TOKEN,
   },
 });
 
@@ -31,7 +31,7 @@ export enum BoothStatus {
 
 export default class BoothManager {
   private static boothInstance: Booth;
-  public static boothId: string | undefined = import.meta.env.VITE_BOOTH_TOKEN;
+  public static boothId: string | undefined = window.config.BOOTH_TOKEN;
   private static theme: Theme;
   private static phase: number = -1;
 
@@ -70,6 +70,10 @@ export default class BoothManager {
     this.status = status;
   }
 
+  /**
+   * startup procedure of a fresh session.
+   * apply/reapply theme styling, refetch booth data from server.
+   */
   public static async boot(): Promise<ISessionState> {
     await api
       .get<BoothInitializeResponse>("/booths/init", {
@@ -99,33 +103,16 @@ export default class BoothManager {
   }
 
   /**
-   * Get all related data to the booth
+   * Ending current session, reset all states to initial value, reload the DOM root tree
+   *
    */
-  public static async sync() {
-    return await api
-      .get<BoothInitializeResponse>("/booth/init", {
-        headers: {
-          Token: this.boothId,
-        },
-      })
-      .then((response) => {
-        return response.data;
-      })
-      .catch((error) => {
-        throw new NetworkError(error as string);
-      });
+  public static async end(): Promise<void> {
+    await BackendService.end();
+    window.reloadDOMTree();
   }
 
-  public static reload(continueAt: number) {
-    this.status = BoothStatus.RELOADING;
-    this.setPhase(continueAt);
-  }
-
-  public static checkStatus() {
-    if (this.status === BoothStatus.RELOADING) {
-      return this.phase;
-    } else if (this.status === BoothStatus.CRASH) {
-      throw new DeviceError("Unexpected Crash");
-    } else return;
-  }
+  /**
+   * static function to resolve any crash issue
+   */
+  public static async crash() {}
 }

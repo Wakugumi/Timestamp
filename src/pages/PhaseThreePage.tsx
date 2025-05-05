@@ -7,7 +7,6 @@ import LoadingAnimation from "../components/LoadingAnimation";
 import "./PhaseThreePage.scss";
 import LoggerService from "../services/LoggerService";
 import PaymentCallback from "../interfaces/PaymentCallback";
-import BackendService from "../services/BackendService";
 import Button from "../components/Button";
 import { usePopup } from "../contexts/PopupContext";
 import { ConfirmPopup } from "../components/Popup";
@@ -52,6 +51,7 @@ export default function PhaseThreePage() {
           hidePopup();
         }}
         onConfirm={() => {
+          BoothManager.end();
           phase?.restart();
           hidePopup();
         }}
@@ -68,7 +68,9 @@ export default function PhaseThreePage() {
         .then((token) => {
           setToken(token as string);
           setState(State.RUNNING);
+          LoggerService.trace("Opened new payment", token as string);
         })
+
         .catch((error) => {
           setState(State.ERROR);
           setError(error);
@@ -103,25 +105,14 @@ export default function PhaseThreePage() {
           setError(result.status_message);
           setState(State.ERROR);
         },
-        onClose: function (result) {
+        onClose: function (result: string) {
           console.log(result);
-          LoggerService.info("Payment window has been closed");
           setState(State.ABORT);
         },
       });
     }
 
-    /** @todo Work on this callback */
-    const paymentCheck = async () => {
-      const check = await BackendService.paymentCallback();
-      console.log(check);
-      if (check?.transaction_status === "settlement") {
-        LoggerService.info("A transaction has been settled");
-        return;
-      }
-    };
     if (state === State.SUCCESS) {
-      paymentCheck();
       setToken("");
       (async () => {
         await setTimeout(() => {
@@ -202,6 +193,8 @@ export default function PhaseThreePage() {
       </>
     );
 
-  if (state === State.ERROR)
+  if (state === State.ERROR) {
+    LoggerService.error(error);
     return <ErrorPage message={error} code="PAYMENT" />;
+  }
 }

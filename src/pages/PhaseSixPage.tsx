@@ -55,8 +55,13 @@ export default function PhaseSixPage() {
       setState(State.PROCESSING);
       (async () => {
         await BackendService.getCaptures()
-          .then((value: string[]) => {
-            setItems(value.map((value) => ({ src: value, picked: false })));
+          .then((value) => {
+            setItems(
+              (value as string[]).map((value) => ({
+                src: value,
+                picked: false,
+              })),
+            );
           })
           .catch((error) => {
             setState(State.ERROR);

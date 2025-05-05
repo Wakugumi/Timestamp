@@ -32,7 +32,7 @@ export default function ConfirmPhaseSix({
       console.log(canvas);
     })()
       .then(() => {
-        canvasFrame.deserialize(canvas);
+        canvasFrame.deserialize(canvas as string);
       })
       .catch((error) => {
         console.error(error);

@@ -32,7 +32,6 @@ export default class ThemeManager {
       },
     })
       .then((response) => {
-        console.log("[ThemeManager]", response);
         return response;
       })
       .catch((error) => {
