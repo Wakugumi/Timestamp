@@ -110,7 +110,7 @@ export default function PhaseFivePage() {
       </>
     );
 
-  if (state === State.RUNNING || state === State.PROCESSING)
+  if (state === State.RUNNING)
     return (
       <>
         <div
